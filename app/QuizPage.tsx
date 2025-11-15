@@ -1,4 +1,4 @@
-import { completePlace } from "@/store/slices/userSlice";
+import { addCoins, completePlace } from "@/store/slices/userSlice";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -28,6 +28,7 @@ export default function QuizPage() {
     "What year was this historic monument built?";
   const placeName = (params.placeName as string) || "";
   const placeId = (params.placeId as string) || "";
+  const reward = params.reward ? Number(params.reward) : 0;
   const correctAnswerIndex = params.correctAnswer
     ? Number(params.correctAnswer)
     : 0;
@@ -53,9 +54,10 @@ export default function QuizPage() {
 
     if (correct) {
       dispatch(completePlace(placeId));
+      dispatch(addCoins(reward));
       Alert.alert(
         "Correct! 🎉",
-        "Great job! You got it right!",
+        `Great job! You got it right! +${reward}G`,
         [
           {
             text: "OK",

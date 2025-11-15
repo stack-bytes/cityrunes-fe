@@ -1,5 +1,12 @@
+// compareImage.ts
 import { environment } from "@/environment";
-import { CameraCapturedPicture } from "expo-camera";
+
+export interface ImageInput {
+  uri: string;
+  width?: number;
+  height?: number;
+  format?: string;
+}
 
 export interface SimilarityCandidate {
   url: string;
@@ -14,7 +21,7 @@ export interface CompareImageResponse {
 }
 
 export const compareImage = async (
-  image: CameraCapturedPicture,
+  image: ImageInput,
   location: string,
   description: string
 ): Promise<CompareImageResponse> => {
@@ -26,7 +33,7 @@ export const compareImage = async (
 
     const imageFile = {
       uri: image.uri,
-      type: "image/jpeg", // or 'image/png' depending on your image format
+      type: "image/jpeg",
       name: "photo.jpg",
     } as any;
 

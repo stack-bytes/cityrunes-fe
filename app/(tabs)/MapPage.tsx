@@ -1,3 +1,4 @@
+import Header from "@/components/Header";
 import MapBottomSheet from "@/components/MapBottomSheet";
 import MapPopup from "@/components/MapPopup";
 import { RootState } from "@/store";
@@ -30,6 +31,16 @@ export default function MapPage() {
   const [zoomLevel, setZoomLevel] = useState(12);
   const [activeRoadId, setActiveRoadId] = useState<string | null>(null);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+
+  const isTrackCompleted = useMemo(() => {
+    if (!activeRoadId) return false;
+    const activeRoad = roads.find((road) => road.id === activeRoadId);
+    if (!activeRoad) return false;
+    const completedPlaces = user.completedPlaces || [];
+    return activeRoad.places.every((place) =>
+      completedPlaces.includes(place.id)
+    );
+  }, [activeRoadId, roads, user.completedPlaces]);
 
   const IMAGE_MAP: { [key: string]: any } = {
     "biserica-reformata.png": require("../../assets/images/historic-landmarks/biserica-reformata.png"),
@@ -71,6 +82,13 @@ export default function MapPage() {
       setActiveMarkers(new Set(initialMarkers));
     }
   }, [roadsFromStore]);
+
+  useEffect(() => {
+    if (isTrackCompleted && activeRoadId) {
+      setActiveRoadId(null);
+      setActiveMarkers(getInitialMarkers());
+    }
+  }, [isTrackCompleted]);
 
   const camera = useMemo(
     () => ({
@@ -118,8 +136,9 @@ export default function MapPage() {
     if (activeRoadId) {
       const activeRoad = roads.find((road) => road.id === activeRoadId);
       if (activeRoad) {
-        activeRoad.places.forEach((place) => {
-          if (!completedPlaces.includes(place.id)) {
+        if (isTrackCompleted) {
+          // Show all markers when track is completed
+          activeRoad.places.forEach((place) => {
             markers.push({
               id: place.id,
               title: place.name,
@@ -128,9 +147,24 @@ export default function MapPage() {
                 longitude: place.coordinates.longitude,
               },
               systemImage: place.icon,
+              tintColor: "green",
             });
-          }
-        });
+          });
+        } else {
+          activeRoad.places.forEach((place) => {
+            if (!completedPlaces.includes(place.id)) {
+              markers.push({
+                id: place.id,
+                title: place.name,
+                coordinates: {
+                  latitude: place.coordinates.latitude,
+                  longitude: place.coordinates.longitude,
+                },
+                systemImage: place.icon,
+              });
+            }
+          });
+        }
       }
       return markers;
     }
@@ -245,6 +279,14 @@ export default function MapPage() {
         onMapClick={handleMapClick}
         onMarkerClick={(event) => handleMarkerClick(event.id!)}
       ></AppleMaps.View>
+      {activeRoadId && !isTrackCompleted && (
+        <Header
+          title={
+            roads.find((road) => road.id === activeRoadId)?.name + " TRACK" ||
+            "TRACK"
+          }
+        />
+      )}
       <BottomSheet
         ref={sheetRef}
         index={-1}
@@ -283,6 +325,7 @@ export default function MapPage() {
                         id: selectedPlace.id,
                         name: selectedPlace.name,
                         description: selectedPlace.description,
+                        reward: String(selectedPlace.reward),
                       },
                     });
                   }}
@@ -301,6 +344,7 @@ export default function MapPage() {
                           correctAnswer: String(quiz?.correct_answer || 0),
                           placeId: selectedPlace.id,
                           placeName: selectedPlace.name,
+                          reward: String(selectedPlace.reward),
                         },
                       });
                     }
