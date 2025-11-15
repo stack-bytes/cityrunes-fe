@@ -1,60 +1,48 @@
+import { RootState } from "@/store";
+import { addCoins } from "@/store/slices/userSlice";
 import { Cog } from "lucide-react-native";
 import React from "react";
-import {
-  Alert,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
+import { useDispatch, useSelector } from "react-redux";
 
-export interface UserProfileI {
-  name: string;
-  balance: number;
-  photo: string;
-  awards: AwardsI[];
-}
+const BADGES = [
+  {
+    name: "Historian",
+    image: require("../../assets/images/badges/Vector.png"),
+    backgroundColor: "#D8ECFF",
+  },
+  {
+    name: "Scholar",
+    image: require("../../assets/images/badges/Vector2.png"),
+    backgroundColor: "#CFE2FF",
+  },
+  {
+    name: "Guardian",
+    image: require("../../assets/images/badges/pillar.png"),
+    backgroundColor: "#FFE8F1",
+  },
+];
 
-export interface AwardsI {
-  name: string;
-  desc: string;
-  emoji: string;
-}
+export default function ProfilePage() {
+  const user = useSelector((state: RootState) => state.user);
+  const dispatch = useDispatch();
 
-export default function ProfilePage({
-  name = "Andrei",
-  balance = 20,
-  photo = "https://gd-prod.azureedge.net/-/media/project/guidedogs/guidedogsdotorg/images/how-you-can-help/nap-german-shepherd-puppies-hp.jpg",
-  awards = [
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-    { name: "Community Pillar", desc: "Good behaviour", emoji: "😀" },
-  ],
-}: UserProfileI) {
-  const awardColors = [
-    "#E8F1FF",
-    "#D8ECFF",
-    "#CFE2FF",
-    "#FFE8F1",
-    "#FFF4D8",
-    "#E9FFE8",
-    "#F2E8FF",
-  ];
+  const name = user.username;
+  const balance = user.coins;
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.settingsButton}>
-          <Cog style={styles.settingsIcon} />
+          <Cog
+            style={styles.settingsIcon}
+            onPress={() => {
+              dispatch(addCoins(10));
+            }}
+          />
         </TouchableOpacity>
       </View>
 
@@ -62,7 +50,13 @@ export default function ProfilePage({
 
       <View style={styles.profileContainer}>
         <View style={styles.profileImageWrapper}>
-          <Image source={{ uri: photo }} style={styles.profileImage} />
+          <Image
+            source={require("../../assets/images/raresc4.png")}
+            style={styles.profileImage}
+            onError={(e) =>
+              console.log("Image load error:", e.nativeEvent.error)
+            }
+          />
         </View>
       </View>
 
@@ -75,25 +69,15 @@ export default function ProfilePage({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.statsScroll}
       >
-        {awards.map((award, index) => (
+        {BADGES.map((badge, index) => (
           <TouchableOpacity
-            onPress={() => {
-              Alert.alert(`${awards[index].name}`, `${awards[index].desc}`);
-            }}
             key={index}
             style={[
               styles.statCard,
-              {
-                backgroundColor:
-                  awardColors[
-                    awardColors.length * (index % 2) +
-                      (index % 2 == 1 ? -1 : 1) *
-                        (index % (awardColors.length - 1))
-                  ],
-              },
+              { backgroundColor: badge.backgroundColor },
             ]}
           >
-            <Text style={styles.emojiText}>{award.emoji}</Text>
+            <Image source={badge.image} style={styles.badgeImage} />
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -134,7 +118,7 @@ const styles = StyleSheet.create({
     fontSize: verticalScale(34),
     color: "#007AFF",
     textAlign: "center",
-    marginTop: verticalScale(24),
+    marginTop: verticalScale(-16),
     letterSpacing: 2,
     shadowColor: "#007AFF",
     shadowOffset: { width: 0, height: 4 },
@@ -188,7 +172,7 @@ const styles = StyleSheet.create({
   },
   statsScroll: {
     paddingHorizontal: verticalScale(20),
-    paddingVertical: verticalScale(30),
+    paddingVertical: verticalScale(15),
     gap: verticalScale(22),
   },
   statCard: {
@@ -204,10 +188,9 @@ const styles = StyleSheet.create({
     elevation: 5,
     transform: [{ scale: 1 }],
   },
-  emojiText: {
-    fontSize: verticalScale(44),
-    textShadowColor: "rgba(0,0,0,0.2)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+  badgeImage: {
+    width: verticalScale(60),
+    height: verticalScale(60),
+    resizeMode: "contain",
   },
 });

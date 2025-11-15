@@ -1,6 +1,8 @@
-import { useRouter } from "expo-router";
+import { completePlace } from "@/store/slices/userSlice";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -8,6 +10,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useDispatch } from "react-redux";
 
 interface QuizAnswer {
   id: string;
@@ -16,24 +19,59 @@ interface QuizAnswer {
 
 export default function QuizPage() {
   const router = useRouter();
+  const dispatch = useDispatch();
+  const params = useLocalSearchParams();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
-  // Mock quiz data - replace with actual data passed from navigation
-  const quizQuestion = "What year was this historic monument built?";
-  const answers: QuizAnswer[] = [
-    { id: "1", text: "1856" },
-    { id: "2", text: "1892" },
-    { id: "3", text: "1923" },
-    { id: "4", text: "1945" },
-  ];
+  const quizQuestion =
+    (params.question as string) ||
+    "What year was this historic monument built?";
+  const placeName = (params.placeName as string) || "";
+  const placeId = (params.placeId as string) || "";
+  const correctAnswerIndex = params.correctAnswer
+    ? Number(params.correctAnswer)
+    : 0;
+  const answersData = params.answers
+    ? JSON.parse(params.answers as string)
+    : ["1856", "1892", "1923", "1945"];
+  const answers: QuizAnswer[] = answersData.map(
+    (answer: string, index: number) => ({
+      id: String(index),
+      text: answer,
+    })
+  );
 
   const handleAnswerSelect = (answerId: string) => {
     setSelectedAnswer(answerId);
   };
 
   const handleSubmit = () => {
-    console.log("Selected answer:", selectedAnswer);
-    // Implement submit logic here
+    if (selectedAnswer === null) return;
+
+    const selectedIndex = Number(selectedAnswer);
+    const correct = selectedIndex === correctAnswerIndex;
+
+    if (correct) {
+      dispatch(completePlace(placeId));
+      Alert.alert(
+        "Correct! 🎉",
+        "Great job! You got it right!",
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ],
+        { cancelable: false }
+      );
+    } else {
+      Alert.alert("Wrong Answer ❌", "That's not quite right. Try again!", [
+        {
+          text: "Try Again",
+          style: "default",
+        },
+      ]);
+    }
   };
 
   return (
@@ -42,6 +80,7 @@ export default function QuizPage() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {placeName && <Text style={styles.placeTitle}>{placeName}</Text>}
         <Text style={styles.questionTitle}>{quizQuestion}</Text>
 
         <View style={styles.answersContainer}>
@@ -101,6 +140,14 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 40,
     justifyContent: "space-between",
+  },
+  placeTitle: {
+    fontFamily: "SilkscreenBold",
+    fontSize: 20,
+    color: "#118CF7",
+    opacity: 0.7,
+    marginBottom: 16,
+    textAlign: "center",
   },
   questionTitle: {
     fontFamily: "SilkscreenBold",

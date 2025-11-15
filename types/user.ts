@@ -7,5 +7,5 @@ export interface User {
   password: string;
   photos: string[];
   badges: Badge[];
-  coints: number;
+  coins: number;
 }

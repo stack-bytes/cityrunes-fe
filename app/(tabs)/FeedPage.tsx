@@ -1,7 +1,7 @@
 import BasicButton from "@/components/BasicButton";
 import FeedCard from "@/components/FeedCard";
 import MonumentCard from "@/components/MonumentCard";
-import { MOCK_TRACKS_FEED } from "@/mocks/mock-tracks-feed";
+import { RootState } from "@/store";
 import { useState } from "react";
 import {
   FlatList,
@@ -13,15 +13,31 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
+import { useSelector } from "react-redux";
+
+const IMAGE_MAP: { [key: string]: any } = {
+  "biserica-reformata.png": require("../../assets/images/historic-landmarks/biserica-reformata.png"),
+  "sf-maria.png": require("../../assets/images/historic-landmarks/sf-maria.png"),
+  "catedrala-mitropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
+  "catedrala-metropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
+  "piata-victoriei.png": require("../../assets/images/historic-landmarks/piata-victoriei.png"),
+  "piata-libertatii.png": require("../../assets/images/historic-landmarks/piata-libertatii.png"),
+  "muzeul-comunist.png": require("../../assets/images/historic-landmarks/muzeul-comunist.png"),
+  "muzeul-arta.png": require("../../assets/images/historic-landmarks/muzeul-arta.png"),
+  "muzeul-satului.png": require("../../assets/images/historic-landmarks/muzeul-satului.png"),
+  "cimitirul-eroilor.png": require("../../assets/images/historic-landmarks/cimitirul-eroilor.png"),
+  "statuie.png": require("../../assets/images/historic-landmarks/statuie.png"),
+};
 
 export default function FeedPage() {
+  const roadsFromStore = useSelector((state: RootState) => state.roads);
   const [searchText, setSearchText] = useState("");
-  const [tracks, setTracks] = useState(MOCK_TRACKS_FEED);
+  const [tracks, setTracks] = useState(roadsFromStore);
 
   const onSearchButtonPress = () => {
     setSearchText("");
-    const newTracks = MOCK_TRACKS_FEED.filter((track) =>
-      track.title.toLowerCase().includes(searchText.toLowerCase())
+    const newTracks = roadsFromStore.filter((track) =>
+      track.name.toLowerCase().includes(searchText.toLowerCase())
     );
     newTracks.length && setTracks(newTracks);
   };
@@ -43,9 +59,13 @@ export default function FeedPage() {
 
             <View style={styles.cardContainer}>
               <MonumentCard
-                title="Monument Rush"
+                title={roadsFromStore[0].name}
                 tag="Hyped"
-                localImageSource={require("../../assets/images/historic-landmarks/statuie.png")}
+                localImageSource={
+                  IMAGE_MAP[
+                    roadsFromStore[0]?.places?.[0]?.photos?.[0] || "statuie.png"
+                  ]
+                }
               />
             </View>
             <View style={styles.verticalLine} />
@@ -76,11 +96,14 @@ export default function FeedPage() {
             </View>
           </>
         }
-        renderItem={({ item }) => (
-          <View style={styles.feedCardContainer}>
-            <FeedCard title={item.title} imageSource={item.imageSource} />
-          </View>
-        )}
+        renderItem={({ item }) => {
+          const photoPath = item.places?.[0]?.photos?.[0] || "statuie.png";
+          return (
+            <View style={styles.feedCardContainer}>
+              <FeedCard title={item.name} imageSource={IMAGE_MAP[photoPath]} />
+            </View>
+          );
+        }}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />

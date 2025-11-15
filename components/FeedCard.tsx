@@ -29,8 +29,18 @@ export default function FeedCard({
       </View>
 
       <View style={styles.actionsContainer}>
-        <BasicButton containerStyles={styles.actionButton} onPress={() => {}} />
-        <BasicButton containerStyles={styles.actionButton} onPress={() => {}} />
+        <BasicButton
+          containerStyles={styles.actionButton}
+          iconSource={require("../assets/images/buttons/map-pin.png")}
+          iconStyles={styles.icon}
+          onPress={() => {}}
+        />
+        <BasicButton
+          containerStyles={styles.actionButton}
+          iconSource={require("../assets/images/buttons/eye.png")}
+          iconStyles={styles.icon}
+          onPress={() => {}}
+        />
       </View>
     </View>
   );
@@ -99,5 +109,13 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "#C7C7C7",
+  },
+  icon: {
+    width: verticalScale(20),
+    height: verticalScale(20),
+    marginLeft: verticalScale(9),
+    marginTop: verticalScale(8),
+    resizeMode: "contain",
+    color: "#007AFF",
   },
 });

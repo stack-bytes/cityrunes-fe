@@ -12,6 +12,7 @@ interface MapPopupProps {
   isVisible?: boolean;
   quest?: Quest;
   onStartQuiz?: () => void;
+  onTakePhoto?: () => void;
   onContinue?: () => void;
 }
 
@@ -25,6 +26,7 @@ export default function MapPopup({
   isVisible = true,
   quest,
   onStartQuiz,
+  onTakePhoto,
   onContinue,
 }: MapPopupProps) {
   if (!isVisible) return null;
@@ -74,7 +76,10 @@ export default function MapPopup({
               <Text style={styles.buttonText}>Start Quiz</Text>
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.startQuizButton} onPress={() => {}}>
+            <TouchableOpacity
+              style={styles.startQuizButton}
+              onPress={onTakePhoto}
+            >
               <Image
                 style={styles.iconPlaceholder}
                 source={require("../assets/images/buttons/photo.png")}
@@ -161,7 +166,7 @@ const styles = StyleSheet.create({
   },
   descriptionContainer: {
     position: "absolute",
-    top: 195,
+    top: 200,
     left: 52,
     width: 319,
     alignItems: "center",

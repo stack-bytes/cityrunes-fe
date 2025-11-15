@@ -19,6 +19,7 @@ export default function MapPage() {
   );
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const roadsFromStore = useSelector((state: RootState) => state.roads);
+  const user = useSelector((state: RootState) => state.user);
   const [roads, setRoads] = useState<Road[]>([]);
   const [activeMarkers, setActiveMarkers] = useState<Set<string>>(new Set());
   const [expandedRoadId, setExpandedRoadId] = useState<string | null>(null);
@@ -29,6 +30,20 @@ export default function MapPage() {
   const [zoomLevel, setZoomLevel] = useState(12);
   const [activeRoadId, setActiveRoadId] = useState<string | null>(null);
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+
+  const IMAGE_MAP: { [key: string]: any } = {
+    "biserica-reformata.png": require("../../assets/images/historic-landmarks/biserica-reformata.png"),
+    "sf-maria.png": require("../../assets/images/historic-landmarks/sf-maria.png"),
+    "catedrala-mitropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
+    "catedrala-metropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
+    "piata-victoriei.png": require("../../assets/images/historic-landmarks/piata-victoriei.png"),
+    "piata-libertatii.png": require("../../assets/images/historic-landmarks/piata-libertatii.png"),
+    "muzeul-comunist.png": require("../../assets/images/historic-landmarks/muzeul-comunist.png"),
+    "muzeul-arta.png": require("../../assets/images/historic-landmarks/muzeul-arta.png"),
+    "muzeul-satului.png": require("../../assets/images/historic-landmarks/muzeul-satului.png"),
+    "cimitirul-eroilor.png": require("../../assets/images/historic-landmarks/cimitirul-eroilor.png"),
+    "statuie.png": require("../../assets/images/historic-landmarks/statuie.png"),
+  };
 
   const sheetRef = useRef<BottomSheet>(null);
 
@@ -86,6 +101,7 @@ export default function MapPage() {
 
   const assembleMarkers = (): AppleMapsMarker[] => {
     const markers: AppleMapsMarker[] = [];
+    const completedPlaces = user.completedPlaces || [];
 
     if (location) {
       markers.push({
@@ -103,35 +119,39 @@ export default function MapPage() {
       const activeRoad = roads.find((road) => road.id === activeRoadId);
       if (activeRoad) {
         activeRoad.places.forEach((place) => {
-          markers.push({
-            id: place.id,
-            title: place.name,
-            coordinates: {
-              latitude: place.coordinates.latitude,
-              longitude: place.coordinates.longitude,
-            },
-            systemImage: place.icon,
-          });
+          if (!completedPlaces.includes(place.id)) {
+            markers.push({
+              id: place.id,
+              title: place.name,
+              coordinates: {
+                latitude: place.coordinates.latitude,
+                longitude: place.coordinates.longitude,
+              },
+              systemImage: place.icon,
+            });
+          }
         });
       }
       return markers;
     }
 
     activeMarkers.forEach((markerId) => {
-      roads.forEach((road) => {
-        const place = road.places.find((p) => p.id === markerId);
-        if (place) {
-          markers.push({
-            id: place.id,
-            title: place.name,
-            coordinates: {
-              latitude: place.coordinates.latitude,
-              longitude: place.coordinates.longitude,
-            },
-            systemImage: place.icon,
-          });
-        }
-      });
+      if (!completedPlaces.includes(markerId)) {
+        roads.forEach((road) => {
+          const place = road.places.find((p) => p.id === markerId);
+          if (place) {
+            markers.push({
+              id: place.id,
+              title: place.name,
+              coordinates: {
+                latitude: place.coordinates.latitude,
+                longitude: place.coordinates.longitude,
+              },
+              systemImage: place.icon,
+            });
+          }
+        });
+      }
     });
 
     return markers;
@@ -139,7 +159,6 @@ export default function MapPage() {
 
   const handleMarkerClick = (markerId: string) => {
     if (activeRoadId) {
-      // When in tracking mode, show the popup for the clicked place
       setSelectedPlaceId(markerId);
       openSheet();
       return;
@@ -200,6 +219,18 @@ export default function MapPage() {
     setActiveMarkers(getInitialMarkers());
   };
 
+  const getImageTrack = () => {
+    if (expandedRoadId) {
+      const expandedRoad = roads.find((road) => road.id === expandedRoadId);
+      if (expandedRoad && expandedRoad.places.length > 0) {
+        const firstPlacePhoto =
+          expandedRoad.places[0].photos?.[0] || "statuie.png";
+        return IMAGE_MAP[firstPlacePhoto];
+      }
+    }
+    return null;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <AppleMaps.View
@@ -231,8 +262,12 @@ export default function MapPage() {
               );
               return selectedPlace ? (
                 <MapPopup
-                  localImageSource={require("../../assets/images/historic-landmarks/statuie.png")}
-                  tag="10G"
+                  localImageSource={
+                    selectedPlace.photos?.[0]
+                      ? IMAGE_MAP[selectedPlace.photos[0]]
+                      : null
+                  }
+                  tag={selectedPlace.reward + "G"}
                   title={selectedPlace.name}
                   description={selectedPlace.description}
                   isQuiz={
@@ -241,15 +276,36 @@ export default function MapPage() {
                       ? true
                       : false
                   }
+                  onTakePhoto={() => {
+                    router.push({
+                      pathname: "/CameraPage",
+                      params: {
+                        id: selectedPlace.id,
+                        name: selectedPlace.name,
+                        description: selectedPlace.description,
+                      },
+                    });
+                  }}
                   onStartQuiz={() => {
-                    console.log(
-                      `Starting quiz for place: ${selectedPlace.name}`
-                    );
                     closeSheet();
-                    router.push("/QuizPage");
+                    if (activeRoad) {
+                      const placeIndex =
+                        activeRoad.places.indexOf(selectedPlace);
+                      const quest = activeRoad.quests[placeIndex];
+                      const quiz = quest?.quiz?.[0];
+                      router.push({
+                        pathname: "/QuizPage",
+                        params: {
+                          question: quiz?.question || "Sample question?",
+                          answers: JSON.stringify(quiz?.answers || []),
+                          correctAnswer: String(quiz?.correct_answer || 0),
+                          placeId: selectedPlace.id,
+                          placeName: selectedPlace.name,
+                        },
+                      });
+                    }
                   }}
                   onContinue={() => {
-                    console.log("Continuing...");
                     closeSheet();
                   }}
                 />
@@ -257,7 +313,12 @@ export default function MapPage() {
             })()
           ) : expandedRoadId ? (
             <MapBottomSheet
-              tag="10G"
+              tag={
+                roads.find((road) => road.id === expandedRoadId)?.places
+                  .length! *
+                  10 +
+                "G"
+              }
               title={
                 roads.find((road) => road.id === expandedRoadId)?.name || "Road"
               }
@@ -265,7 +326,7 @@ export default function MapPage() {
                 roads.find((road) => road.id === expandedRoadId)?.description ||
                 "Description"
               }
-              localImageSource={require("../../assets/images/historic-landmarks/statuie.png")}
+              localImageSource={getImageTrack()}
               onStartTrack={onStartTrack}
               onContinue={closeSheet}
             />
