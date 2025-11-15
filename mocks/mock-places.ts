@@ -49,4 +49,28 @@ export const MOCK_PLACES: Place[] = [
     icon: "cross.vial",
     reward: 55,
   },
+  {
+    id: "7",
+    name: "Muzeul Conservatorului Comunist",
+    coordinates: { latitude: 45.74912, longitude: 21.2239 }, // approximate Timisoara center coords
+    description: "Muzeul Conservatorului Comunist din Timișoara",
+    icon: "building.columns",
+    reward: 65,
+  },
+  {
+    id: "8",
+    name: "Muzeul de Artă",
+    coordinates: { latitude: 45.7489, longitude: 21.2248 }, // approximate
+    description: "Muzeul de Artă din Timișoara",
+    icon: "paintpalette",
+    reward: 80,
+  },
+  {
+    id: "9",
+    name: "Muzeul Satului Bănățean",
+    coordinates: { latitude: 45.7532, longitude: 21.2115 }, // approximate/outskirts
+    description: "Muzeul Satului Bănățean din Timișoara",
+    icon: "house",
+    reward: 70,
+  },
 ];

@@ -1,25 +1,27 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-interface MapBottomSheetProps {
+interface MapPopupProps {
   imageUrl?: string;
   localImageSource?: any;
   logoImageSource?: any;
   tag?: string;
   title?: string;
   description?: string;
+  isQuiz?: boolean;
   onStartQuiz?: () => void;
   onContinue?: () => void;
 }
 
-export default function MapBottomSheet({
+export default function MapPopup({
   imageUrl,
   localImageSource,
   tag = "10G",
   title = "Grand Monument",
   description = "Welcome to grand monument, look around at the clues and when you are ready press the button to take the quiz",
+  isQuiz = false,
   onStartQuiz,
   onContinue,
-}: MapBottomSheetProps) {
+}: MapPopupProps) {
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -53,13 +55,26 @@ export default function MapBottomSheet({
         </View>
 
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.startQuizButton} onPress={() => {}}>
-            <Image
-              style={styles.iconPlaceholder}
-              source={require("../assets/images/buttons/help-box-multiple.png")}
-            />
-            <Text style={styles.buttonText}>Start Track</Text>
-          </TouchableOpacity>
+          {isQuiz ? (
+            <TouchableOpacity
+              style={styles.startQuizButton}
+              onPress={onStartQuiz}
+            >
+              <Image
+                style={styles.iconPlaceholder}
+                source={require("../assets/images/buttons/help-box-multiple.png")}
+              />
+              <Text style={styles.buttonText}>Start Quiz</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.startQuizButton} onPress={() => {}}>
+              <Image
+                style={styles.iconPlaceholder}
+                source={require("../assets/images/buttons/photo.png")}
+              />
+              <Text style={styles.buttonText}>Take Photo</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
             <Image

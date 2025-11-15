@@ -1,9 +1,11 @@
+import MapBottomSheet from "@/components/MapBottomSheet";
 import { RootState } from "@/store";
 import { Road } from "@/types/road";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { AppleMaps, Coordinates } from "expo-maps";
 import { AppleMapsMarker } from "expo-maps/build/apple/AppleMaps.types";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
@@ -22,6 +24,8 @@ export default function MapPage() {
     longitude: 21.24,
   });
   const [zoomLevel, setZoomLevel] = useState(12);
+
+  const sheetRef = useRef<BottomSheet>(null);
 
   useEffect(() => {
     async function getCurrentLocation() {
@@ -57,6 +61,17 @@ export default function MapPage() {
     }),
     [coordinates, zoomLevel]
   );
+
+  const snapPoints = ["45%"];
+
+  const openSheet = () => {
+    console.log("Opening Sheet");
+    sheetRef.current?.snapToIndex(0);
+  };
+
+  const closeSheet = () => {
+    sheetRef.current?.close();
+  };
 
   const getInitialMarkers = (): Set<string> => {
     const initialMarkers = roads
@@ -117,6 +132,8 @@ export default function MapPage() {
       setZoomLevel(15);
     }
 
+    openSheet();
+
     if (expandedRoadId === targetRoad.id) {
       const newActiveMarkers = new Set<string>(activeMarkers);
       targetRoad.places.forEach((place) => {
@@ -149,9 +166,31 @@ export default function MapPage() {
         onMapClick={() => setActiveMarkers(getInitialMarkers())}
         onMarkerClick={(event) => handleMarkerClick(event.id!)}
       ></AppleMaps.View>
-      {/* <Host>
-      <BottomSheet isOpened={false} children={} onIsOpenedChange={}/>
-    </Host> */}
+      <BottomSheet
+        ref={sheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        enableOverDrag={false}
+        backgroundStyle={{ backgroundColor: "#118CF7" }}
+      >
+        <BottomSheetView style={{ flex: 1, paddingBottom: 160 }}>
+          <MapBottomSheet
+            imageUrl="https://example.com/image.jpg"
+            localImageSource={require("../../assets/images/historic-landmarks/statuie.png")}
+            tag="15G"
+            title="Historic Statue"
+            description="This statue commemorates the historic events that shaped our city. Explore the area and take the quiz to learn more!"
+            onStartQuiz={() => {
+              console.log("Starting Quiz...");
+            }}
+            onContinue={() => {
+              console.log("Continuing...");
+              closeSheet();
+            }}
+          />
+        </BottomSheetView>
+      </BottomSheet>
     </SafeAreaView>
   );
 }
