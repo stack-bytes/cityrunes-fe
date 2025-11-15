@@ -1,4 +1,5 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { verticalScale } from "react-native-size-matters";
 
 interface MapBottomSheetProps {
   imageUrl?: string;
@@ -7,7 +8,7 @@ interface MapBottomSheetProps {
   tag?: string;
   title?: string;
   description?: string;
-  onStartQuiz?: () => void;
+  onStartTrack?: () => void;
   onContinue?: () => void;
 }
 
@@ -17,7 +18,7 @@ export default function MapBottomSheet({
   tag = "10G",
   title = "Grand Monument",
   description = "Welcome to grand monument, look around at the clues and when you are ready press the button to take the quiz",
-  onStartQuiz,
+  onStartTrack,
   onContinue,
 }: MapBottomSheetProps) {
   return (
@@ -53,7 +54,10 @@ export default function MapBottomSheet({
         </View>
 
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity style={styles.startQuizButton} onPress={() => {}}>
+          <TouchableOpacity
+            style={styles.startQuizButton}
+            onPress={onStartTrack}
+          >
             <Image
               style={styles.iconPlaceholder}
               source={require("../assets/images/buttons/help-box-multiple.png")}
@@ -127,15 +131,14 @@ const styles = StyleSheet.create({
   titleContainer: {
     position: "absolute",
     top: 149,
-    left: 76,
+    left: verticalScale(52),
     width: 298,
     height: 53,
   },
   title: {
     fontFamily: "SilkscreenBold",
-    fontSize: 24,
+    fontSize: verticalScale(16),
     color: "#E5FBEB",
-    letterSpacing: 0.25,
     lineHeight: 40,
   },
   descriptionContainer: {

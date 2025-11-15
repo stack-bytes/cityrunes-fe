@@ -1,3 +1,4 @@
+import { Quest } from "@/types/quest";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface MapPopupProps {
@@ -8,6 +9,8 @@ interface MapPopupProps {
   title?: string;
   description?: string;
   isQuiz?: boolean;
+  isVisible?: boolean;
+  quest?: Quest;
   onStartQuiz?: () => void;
   onContinue?: () => void;
 }
@@ -19,9 +22,13 @@ export default function MapPopup({
   title = "Grand Monument",
   description = "Welcome to grand monument, look around at the clues and when you are ready press the button to take the quiz",
   isQuiz = false,
+  isVisible = true,
+  quest,
   onStartQuiz,
   onContinue,
 }: MapPopupProps) {
+  if (!isVisible) return null;
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -142,16 +149,15 @@ const styles = StyleSheet.create({
   titleContainer: {
     position: "absolute",
     top: 149,
-    left: 76,
+    left: 92,
     width: 298,
     height: 53,
   },
   title: {
     fontFamily: "SilkscreenBold",
-    fontSize: 24,
+    fontSize: 16,
     color: "#E5FBEB",
-    letterSpacing: 0.25,
-    lineHeight: 40,
+    lineHeight: 24,
   },
   descriptionContainer: {
     position: "absolute",

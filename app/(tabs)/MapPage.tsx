@@ -1,16 +1,19 @@
 import MapBottomSheet from "@/components/MapBottomSheet";
+import MapPopup from "@/components/MapPopup";
 import { RootState } from "@/store";
 import { Road } from "@/types/road";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { AppleMaps, Coordinates } from "expo-maps";
 import { AppleMapsMarker } from "expo-maps/build/apple/AppleMaps.types";
+import { useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
 
 export default function MapPage() {
+  const router = useRouter();
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null
   );
@@ -24,6 +27,8 @@ export default function MapPage() {
     longitude: 21.24,
   });
   const [zoomLevel, setZoomLevel] = useState(12);
+  const [activeRoadId, setActiveRoadId] = useState<string | null>(null);
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
   const sheetRef = useRef<BottomSheet>(null);
 
@@ -65,7 +70,6 @@ export default function MapPage() {
   const snapPoints = ["45%"];
 
   const openSheet = () => {
-    console.log("Opening Sheet");
     sheetRef.current?.snapToIndex(0);
   };
 
@@ -95,6 +99,24 @@ export default function MapPage() {
       });
     }
 
+    if (activeRoadId) {
+      const activeRoad = roads.find((road) => road.id === activeRoadId);
+      if (activeRoad) {
+        activeRoad.places.forEach((place) => {
+          markers.push({
+            id: place.id,
+            title: place.name,
+            coordinates: {
+              latitude: place.coordinates.latitude,
+              longitude: place.coordinates.longitude,
+            },
+            systemImage: place.icon,
+          });
+        });
+      }
+      return markers;
+    }
+
     activeMarkers.forEach((markerId) => {
       roads.forEach((road) => {
         const place = road.places.find((p) => p.id === markerId);
@@ -116,6 +138,13 @@ export default function MapPage() {
   };
 
   const handleMarkerClick = (markerId: string) => {
+    if (activeRoadId) {
+      // When in tracking mode, show the popup for the clicked place
+      setSelectedPlaceId(markerId);
+      openSheet();
+      return;
+    }
+
     const targetRoad = roads.find((road) =>
       road.places.some((place) => place.id === markerId)
     );
@@ -124,15 +153,15 @@ export default function MapPage() {
 
     const isFirstPlace = targetRoad.places[0]?.id === markerId;
 
-    if (!isFirstPlace) return;
+    if (isFirstPlace) {
+      openSheet();
+    }
 
     const clickedPlace = targetRoad.places.find((p) => p.id === markerId);
     if (clickedPlace) {
       setCoordinates(clickedPlace.coordinates);
       setZoomLevel(15);
     }
-
-    openSheet();
 
     if (expandedRoadId === targetRoad.id) {
       const newActiveMarkers = new Set<string>(activeMarkers);
@@ -152,6 +181,25 @@ export default function MapPage() {
     }
   };
 
+  const onStartTrack = () => {
+    closeSheet();
+    const targetRoad = roads.find((road) => road.id === expandedRoadId);
+    if (!targetRoad) return;
+
+    const activeMarkersSet = new Set<string>(activeMarkers);
+    targetRoad.places.forEach((place) => {
+      activeMarkersSet.add(place.id);
+    });
+    setActiveMarkers(activeMarkersSet);
+    setActiveRoadId(targetRoad.id);
+    console.log("Started tracking road:", targetRoad.name);
+  };
+
+  const handleMapClick = () => {
+    if (activeRoadId) return;
+    setActiveMarkers(getInitialMarkers());
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <AppleMaps.View
@@ -163,7 +211,7 @@ export default function MapPage() {
           },
         }}
         markers={assembleMarkers()}
-        onMapClick={() => setActiveMarkers(getInitialMarkers())}
+        onMapClick={handleMapClick}
         onMarkerClick={(event) => handleMarkerClick(event.id!)}
       ></AppleMaps.View>
       <BottomSheet
@@ -175,20 +223,53 @@ export default function MapPage() {
         backgroundStyle={{ backgroundColor: "#118CF7" }}
       >
         <BottomSheetView style={{ flex: 1, paddingBottom: 160 }}>
-          <MapBottomSheet
-            imageUrl="https://example.com/image.jpg"
-            localImageSource={require("../../assets/images/historic-landmarks/statuie.png")}
-            tag="15G"
-            title="Historic Statue"
-            description="This statue commemorates the historic events that shaped our city. Explore the area and take the quiz to learn more!"
-            onStartQuiz={() => {
-              console.log("Starting Quiz...");
-            }}
-            onContinue={() => {
-              console.log("Continuing...");
-              closeSheet();
-            }}
-          />
+          {selectedPlaceId && activeRoadId ? (
+            (() => {
+              const activeRoad = roads.find((road) => road.id === activeRoadId);
+              const selectedPlace = activeRoad?.places.find(
+                (p) => p.id === selectedPlaceId
+              );
+              return selectedPlace ? (
+                <MapPopup
+                  localImageSource={require("../../assets/images/historic-landmarks/statuie.png")}
+                  tag="10G"
+                  title={selectedPlace.name}
+                  description={selectedPlace.description}
+                  isQuiz={
+                    activeRoad?.quests[activeRoad.places.indexOf(selectedPlace)]
+                      .type === "QUIZ"
+                      ? true
+                      : false
+                  }
+                  onStartQuiz={() => {
+                    console.log(
+                      `Starting quiz for place: ${selectedPlace.name}`
+                    );
+                    closeSheet();
+                    router.push("/QuizPage");
+                  }}
+                  onContinue={() => {
+                    console.log("Continuing...");
+                    closeSheet();
+                  }}
+                />
+              ) : null;
+            })()
+          ) : expandedRoadId ? (
+            <MapBottomSheet
+              tag="10G"
+              title={
+                roads.find((road) => road.id === expandedRoadId)?.name || "Road"
+              }
+              description={
+                roads.find((road) => road.id === expandedRoadId)?.description ||
+                "Description"
+              }
+              localImageSource={require("../../assets/images/historic-landmarks/statuie.png")}
+              onStartTrack={onStartTrack}
+              onContinue={closeSheet}
+            />
+          ) : null}
         </BottomSheetView>
       </BottomSheet>
     </SafeAreaView>
