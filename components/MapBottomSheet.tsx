@@ -3,9 +3,11 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 interface MapCardPrompts {
   imageUrl?: string;
   localImageSource?: any;
+  logoImageSource?: any;
   tag?: string;
   title?: string;
   description?: string;
+  isQuiz?: boolean;
   onStartQuiz?: () => void;
   onContinue?: () => void;
 }
@@ -16,6 +18,7 @@ export default function MapBottomSheet({
   tag = "10G",
   title = "Grand Monument",
   description = "Welcome to grand monument, look around at the clues and when you are ready press the button to take the quiz",
+  isQuiz = false,
   onStartQuiz,
   onContinue,
 }: MapCardPrompts) {
@@ -35,6 +38,12 @@ export default function MapBottomSheet({
           <View style={styles.tagBadge}>
             <Text style={styles.tagText}>{tag}</Text>
           </View>
+          <View style={styles.logoContainer}>
+            <Image
+              style={styles.roadLogo}
+              source={require("../assets/images/buttons/routes.png")}
+            />
+          </View>
         </View>
 
         <View style={styles.titleContainer}>
@@ -46,16 +55,32 @@ export default function MapBottomSheet({
         </View>
 
         <View style={styles.buttonsContainer}>
-          <TouchableOpacity
-            style={styles.startQuizButton}
-            onPress={onStartQuiz}
-          >
-            <View style={styles.iconPlaceholder} />
-            <Text style={styles.buttonText}>Start Quiz</Text>
-          </TouchableOpacity>
+          {isQuiz ? (
+            <TouchableOpacity
+              style={styles.startQuizButton}
+              onPress={onStartQuiz}
+            >
+              <Image
+                style={styles.iconPlaceholder}
+                source={require("../assets/images/buttons/help-box-multiple.png")}
+              />
+              <Text style={styles.buttonText}>Start Quiz</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.startQuizButton} onPress={() => {}}>
+              <Image
+                style={styles.iconPlaceholder}
+                source={require("../assets/images/buttons/photo.png")}
+              />
+              <Text style={styles.buttonText}>Take Photo</Text>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
-            <View style={styles.iconPlaceholder} />
+            <Image
+              style={styles.iconPlaceholder}
+              source={require("../assets/images/buttons/exit-run.png")}
+            />
             <Text style={styles.buttonText}>Continue</Text>
           </TouchableOpacity>
         </View>
@@ -119,7 +144,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     position: "absolute",
     top: 149,
-    left: 34,
+    left: 76,
     width: 298,
     height: 53,
   },
@@ -133,7 +158,7 @@ const styles = StyleSheet.create({
   descriptionContainer: {
     position: "absolute",
     top: 195,
-    left: 24,
+    left: 52,
     width: 319,
     alignItems: "center",
   },
@@ -147,7 +172,7 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     position: "absolute",
     top: 259,
-    left: 47,
+    left: 76,
     flexDirection: "row",
     gap: 17,
   },
@@ -187,5 +212,23 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     backgroundColor: "transparent",
+  },
+  logoContainer: {
+    position: "absolute",
+    top: 7,
+    right: 7,
+    width: 42,
+    height: 42,
+    padding: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#08F",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+  },
+  roadLogo: {
+    width: 30,
+    height: 30,
   },
 });

@@ -124,7 +124,7 @@ export default function MapPage() {
       });
       setActiveMarkers(newActiveMarkers);
       setExpandedRoadId(null);
-      setZoomLevel(12);
+      setZoomLevel(14);
     } else {
       const newActiveMarkers = new Set<string>(activeMarkers);
       targetRoad.places.forEach((place) => {
