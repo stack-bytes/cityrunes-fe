@@ -24,20 +24,24 @@ export default function LeaderboardPage() {
     if (trackId) {
       dispatch(initializeTrackLeaderboard({ trackId }));
     }
-  }, [trackId, dispatch]);
+  }, [trackId]);
 
   const allUsers = useMemo(() => {
-    const trackPoints = trackId ? trackLeaderboards[trackId] : {};
-
-    if (!trackPoints) {
+    if (!trackId) {
       return [];
     }
 
+    const trackPoints = trackLeaderboards[trackId] || {};
+
     const users = [
-      ...MOCK_LEADERBOARD_USERS.map((user) => ({
-        ...user,
-        points: trackPoints[user.id] || 0,
-      })),
+      ...MOCK_LEADERBOARD_USERS.map((user) => {
+        const points = trackPoints[user.id] || 0;
+        console.log(`User ${user.username} (${user.id}): ${points} points`);
+        return {
+          ...user,
+          points,
+        };
+      }),
       {
         id: currentUser.id,
         username: currentUser.username,

@@ -248,6 +248,8 @@ export default function MapPage() {
     const isFirstPlace = targetRoad.places[0]?.id === markerId;
 
     if (isFirstPlace) {
+      // Always set expanded road ID and open sheet for first place marker
+      setExpandedRoadId(targetRoad.id);
       openSheet();
     }
 
@@ -257,22 +259,12 @@ export default function MapPage() {
       setZoomLevel(15);
     }
 
-    if (expandedRoadId === targetRoad.id) {
-      const newActiveMarkers = new Set<string>(activeMarkers);
-      targetRoad.places.forEach((place) => {
-        newActiveMarkers.add(place.id);
-      });
-      setActiveMarkers(newActiveMarkers);
-      setExpandedRoadId(null);
-      setZoomLevel(14);
-    } else {
-      const newActiveMarkers = new Set<string>(activeMarkers);
-      targetRoad.places.forEach((place) => {
-        newActiveMarkers.add(place.id);
-      });
-      setActiveMarkers(newActiveMarkers);
-      setExpandedRoadId(targetRoad.id);
-    }
+    // Expand all markers for this road
+    const newActiveMarkers = new Set<string>(activeMarkers);
+    targetRoad.places.forEach((place) => {
+      newActiveMarkers.add(place.id);
+    });
+    setActiveMarkers(newActiveMarkers);
   };
 
   const onStartTrack = () => {
