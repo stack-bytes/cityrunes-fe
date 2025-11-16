@@ -1,3 +1,5 @@
+import { RootState } from "@/store";
+import { addPoints } from "@/store/slices/leaderboardSlice";
 import { addCoins, completePlace } from "@/store/slices/userSlice";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -10,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 interface QuizAnswer {
   id: string;
@@ -21,6 +23,7 @@ export default function QuizPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const params = useLocalSearchParams();
+  const currentUser = useSelector((state: RootState) => state.user);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
   const quizQuestion =
@@ -28,6 +31,7 @@ export default function QuizPage() {
     "What year was this historic monument built?";
   const placeName = (params.placeName as string) || "";
   const placeId = (params.placeId as string) || "";
+  const trackId = (params.trackId as string) || "";
   const reward = params.reward ? Number(params.reward) : 0;
   const correctAnswerIndex = params.correctAnswer
     ? Number(params.correctAnswer)
@@ -55,6 +59,11 @@ export default function QuizPage() {
     if (correct) {
       dispatch(completePlace(placeId));
       dispatch(addCoins(reward));
+      if (trackId) {
+        dispatch(
+          addPoints({ userId: currentUser.id, trackId, points: reward })
+        );
+      }
       Alert.alert(
         "Correct! 🎉",
         `Great job! You got it right! +${reward}G`,

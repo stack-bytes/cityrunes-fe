@@ -1,8 +1,17 @@
-import { Road } from "./road";
-import { User } from "./user";
-
-export interface Leaderboard {
+export interface LeaderboardUser {
   id: string;
-  users: User[];
-  road: Road;
+  username: string;
+  points: number;
+  avatar?: any;
+}
+
+export interface TrackLeaderboard {
+  trackId: string;
+  users: LeaderboardUser[];
+}
+
+export interface UserTrackPoints {
+  userId: string;
+  trackId: string;
+  points: number;
 }

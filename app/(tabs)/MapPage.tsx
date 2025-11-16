@@ -367,6 +367,7 @@ export default function MapPage() {
                         name: selectedPlace.name,
                         description: selectedPlace.description,
                         reward: String(selectedPlace.reward),
+                        trackId: activeRoadId || "",
                       },
                     });
                   }}
@@ -386,6 +387,7 @@ export default function MapPage() {
                           placeId: selectedPlace.id,
                           placeName: selectedPlace.name,
                           reward: String(selectedPlace.reward),
+                          trackId: activeRoadId || "",
                         },
                       });
                     }

@@ -1,4 +1,6 @@
 import { compareImage } from "@/actions/camera";
+import { RootState } from "@/store";
+import { addPoints } from "@/store/slices/leaderboardSlice";
 import { addCoins, completePlace } from "@/store/slices/userSlice";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
@@ -14,11 +16,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function CameraPage() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const currentUser = useSelector((state: RootState) => state.user);
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -57,10 +60,16 @@ export default function CameraPage() {
 
       if (result.similarity >= result.thresholdHint) {
         const placeId = params.id as string;
+        const trackId = params.trackId as string;
         const reward = params.reward ? Number(params.reward) : 0;
         if (placeId) {
           dispatch(completePlace(placeId));
           dispatch(addCoins(reward));
+          if (trackId) {
+            dispatch(
+              addPoints({ userId: currentUser.id, trackId, points: reward })
+            );
+          }
         }
         Alert.alert("Success!", `Match found! +${reward}G`, [
           { text: "OK", onPress: () => router.back() },

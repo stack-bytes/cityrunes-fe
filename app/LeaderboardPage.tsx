@@ -1,26 +1,47 @@
+import { MOCK_LEADERBOARD_USERS } from "@/mocks/mock-leaderboard";
 import { RootState } from "@/store";
-import { router } from "expo-router";
+import { initializeTrackLeaderboard } from "@/store/slices/leaderboardSlice";
+import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function LeaderboardPage() {
-  const leaderboardUsers = useSelector(
-    (state: RootState) => state.leaderboard.users
+  const params = useLocalSearchParams();
+  const trackId = params.trackId as string;
+  const dispatch = useDispatch();
+
+  const trackLeaderboards = useSelector(
+    (state: RootState) => state.leaderboard.trackLeaderboards
   );
   const currentUser = useSelector((state: RootState) => state.user);
 
+  useEffect(() => {
+    if (trackId) {
+      dispatch(initializeTrackLeaderboard({ trackId }));
+    }
+  }, [trackId, dispatch]);
+
   const allUsers = useMemo(() => {
+    const trackPoints = trackId ? trackLeaderboards[trackId] : {};
+
+    if (!trackPoints) {
+      return [];
+    }
+
     const users = [
-      ...leaderboardUsers,
+      ...MOCK_LEADERBOARD_USERS.map((user) => ({
+        ...user,
+        points: trackPoints[user.id] || 0,
+      })),
       {
         id: currentUser.id,
         username: currentUser.username,
-        coins: currentUser.coins,
+        points: trackPoints[currentUser.id] || 0,
         avatar: require("../assets/images/raresc4.png"),
       },
     ];
@@ -29,8 +50,8 @@ export default function LeaderboardPage() {
       new Map(users.map((user) => [user.id, user])).values()
     );
 
-    return uniqueUsers.sort((a, b) => b.coins - a.coins);
-  }, [leaderboardUsers, currentUser]);
+    return uniqueUsers.sort((a, b) => b.points - a.points);
+  }, [trackLeaderboards, trackId, currentUser]);
 
   const topThree = allUsers.slice(0, 3);
   const restOfUsers = allUsers.slice(3);
@@ -63,7 +84,7 @@ export default function LeaderboardPage() {
               </View>
               <Text style={styles.podiumName}>{topThree[1].username}</Text>
               <View style={[styles.podiumBar, styles.silverBar]}>
-                <Text style={styles.podiumScore}>{topThree[1].coins}</Text>
+                <Text style={styles.podiumScore}>{topThree[1].points}</Text>
               </View>
             </View>
           )}
@@ -79,7 +100,7 @@ export default function LeaderboardPage() {
               </View>
               <Text style={styles.podiumName}>{topThree[0].username}</Text>
               <View style={[styles.podiumBar, styles.goldBar]}>
-                <Text style={styles.podiumScore}>{topThree[0].coins}</Text>
+                <Text style={styles.podiumScore}>{topThree[0].points}</Text>
               </View>
             </View>
           )}
@@ -95,7 +116,7 @@ export default function LeaderboardPage() {
               </View>
               <Text style={styles.podiumName}>{topThree[2].username}</Text>
               <View style={[styles.podiumBar, styles.bronzeBar]}>
-                <Text style={styles.podiumScore}>{topThree[2].coins}</Text>
+                <Text style={styles.podiumScore}>{topThree[2].points}</Text>
               </View>
             </View>
           )}
@@ -126,7 +147,7 @@ export default function LeaderboardPage() {
                   >
                     {user.username}
                   </Text>
-                  <Text style={styles.listPoints}>{user.coins} points</Text>
+                  <Text style={styles.listPoints}>{user.points} points</Text>
                 </View>
               </View>
             );

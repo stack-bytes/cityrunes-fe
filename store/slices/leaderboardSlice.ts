@@ -1,24 +1,56 @@
-import {
-  LeaderboardUser,
-  MOCK_LEADERBOARD_USERS,
-} from "@/mocks/mock-leaderboard";
-import { createSlice } from "@reduxjs/toolkit";
+import { MOCK_LEADERBOARD_USERS } from "@/mocks/mock-leaderboard";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+interface TrackPoints {
+  [userId: string]: number;
+}
 
 interface LeaderboardState {
-  users: LeaderboardUser[];
+  trackLeaderboards: {
+    [trackId: string]: TrackPoints;
+  };
 }
 
 const leaderboardSlice = createSlice({
   name: "leaderboard",
   initialState: {
-    users: MOCK_LEADERBOARD_USERS,
+    trackLeaderboards: {},
   } as LeaderboardState,
   reducers: {
-    getLeaderboard: (state) => {
-      return state;
+    addPoints: (
+      state,
+      action: PayloadAction<{ userId: string; trackId: string; points: number }>
+    ) => {
+      const { userId, trackId, points } = action.payload;
+
+      if (!state.trackLeaderboards[trackId]) {
+        state.trackLeaderboards[trackId] = {};
+      }
+
+      if (!state.trackLeaderboards[trackId][userId]) {
+        state.trackLeaderboards[trackId][userId] = 0;
+      }
+
+      state.trackLeaderboards[trackId][userId] += points;
+    },
+    initializeTrackLeaderboard: (
+      state,
+      action: PayloadAction<{ trackId: string }>
+    ) => {
+      const { trackId } = action.payload;
+
+      if (!state.trackLeaderboards[trackId]) {
+        state.trackLeaderboards[trackId] = {};
+
+        // Initialize with mock users
+        MOCK_LEADERBOARD_USERS.forEach((user) => {
+          state.trackLeaderboards[trackId][user.id] = user.coins;
+        });
+      }
     },
   },
 });
 
-export const { getLeaderboard } = leaderboardSlice.actions;
+export const { addPoints, initializeTrackLeaderboard } =
+  leaderboardSlice.actions;
 export default leaderboardSlice.reducer;

@@ -55,7 +55,16 @@ export default function FeedCard({
           containerStyles={styles.actionButton}
           iconSource={require("../assets/images/badges/leaderboard.png")}
           iconStyles={styles.icon}
-          onPress={() => router.push("/LeaderboardPage")}
+          onPress={() => {
+            if (roadId) {
+              router.push({
+                pathname: "/LeaderboardPage",
+                params: { trackId: roadId },
+              });
+            } else {
+              router.push("/LeaderboardPage");
+            }
+          }}
         />
       </View>
     </View>
