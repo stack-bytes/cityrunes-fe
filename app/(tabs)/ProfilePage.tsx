@@ -1,5 +1,6 @@
 import { RootState } from "@/store";
 import { addCoins } from "@/store/slices/userSlice";
+import { router } from "expo-router";
 import { Cog } from "lucide-react-native";
 import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -32,6 +33,10 @@ export default function ProfilePage() {
 
   const name = user.username;
   const balance = user.coins;
+  const purchasedBadges = user.purchasedBadges || [];
+
+  // Combine default badges with purchased badges
+  const allBadges = [...BADGES, ...purchasedBadges];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -60,18 +65,21 @@ export default function ProfilePage() {
         </View>
       </View>
 
-      <View style={styles.xpBadge}>
+      <TouchableOpacity
+        style={styles.xpBadge}
+        onPress={() => router.push("/StorePage")}
+      >
         <Text style={styles.xpText}>{balance}G</Text>
-      </View>
+      </TouchableOpacity>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.statsScroll}
       >
-        {BADGES.map((badge, index) => (
+        {allBadges.map((badge, index) => (
           <TouchableOpacity
-            key={index}
+            key={`${badge.name}-${index}`}
             style={[
               styles.statCard,
               { backgroundColor: badge.backgroundColor },

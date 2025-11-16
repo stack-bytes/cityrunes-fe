@@ -1,5 +1,6 @@
 import { Quest } from "@/types/quest";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { verticalScale } from "react-native-size-matters";
 
 interface MapPopupProps {
   imageUrl?: string;
@@ -93,7 +94,7 @@ export default function MapPopup({
               style={styles.iconPlaceholder}
               source={require("../assets/images/buttons/exit-run.png")}
             />
-            <Text style={styles.buttonText}>Continue</Text>
+            <Text style={styles.continueButtonText}>Continue</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -154,21 +155,24 @@ const styles = StyleSheet.create({
   titleContainer: {
     position: "absolute",
     top: 149,
-    left: 92,
-    width: 298,
-    height: 53,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    alignItems: "center",
   },
   title: {
     fontFamily: "SilkscreenBold",
     fontSize: 16,
     color: "#E5FBEB",
     lineHeight: 24,
+    textAlign: "center",
   },
   descriptionContainer: {
     position: "absolute",
     top: 200,
-    left: 52,
-    width: 319,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
     alignItems: "center",
   },
   description: {
@@ -181,13 +185,17 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     position: "absolute",
     top: 259,
-    left: 76,
+    left: 0,
+    right: 0,
     flexDirection: "row",
+    justifyContent: "center",
     gap: 17,
   },
   startQuizButton: {
-    backgroundColor: "#005CBF",
-    borderRadius: 7,
+    backgroundColor: "#007AFF",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+    borderRadius: verticalScale(14),
     paddingHorizontal: 13,
     paddingVertical: 8,
     height: 36,
@@ -198,10 +206,7 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   continueButton: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#E5FBEB",
-    borderRadius: 7,
+    backgroundColor: "#FFF",
     paddingHorizontal: 13,
     paddingVertical: 8,
     height: 36,
@@ -209,7 +214,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: verticalScale(14),
     gap: 7,
+  },
+  continueButtonText: {
+    fontFamily: "Inter",
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#007AFF",
+    textAlign: "center",
   },
   buttonText: {
     fontFamily: "Inter",
@@ -220,7 +233,7 @@ const styles = StyleSheet.create({
   iconPlaceholder: {
     width: 20,
     height: 20,
-    backgroundColor: "transparent",
+    resizeMode: "contain",
   },
   logoContainer: {
     position: "absolute",

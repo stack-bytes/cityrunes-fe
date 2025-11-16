@@ -14,7 +14,7 @@ export const MOCK_ROADS: Road[] = [
   },
   {
     id: "road-2",
-    name: "Cultural Route",
+    name: "Art Track",
     description: "A cultural route connecting the main museums in Timisoara.",
     places: MOCK_PLACES.slice(6, 9),
     quests: MOCK_QUESTS,

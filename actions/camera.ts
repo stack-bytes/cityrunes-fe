@@ -1,4 +1,3 @@
-// compareImage.ts
 import { environment } from "@/environment";
 
 export interface ImageInput {

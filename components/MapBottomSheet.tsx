@@ -70,7 +70,7 @@ export default function MapBottomSheet({
               style={styles.iconPlaceholder}
               source={require("../assets/images/buttons/exit-run.png")}
             />
-            <Text style={styles.buttonText}>Continue</Text>
+            <Text style={styles.continueButtonText}>Continue</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -163,8 +163,10 @@ const styles = StyleSheet.create({
     gap: 17,
   },
   startQuizButton: {
-    backgroundColor: "#005CBF",
-    borderRadius: 7,
+    backgroundColor: "#007AFF",
+    borderWidth: 1,
+    borderColor: "#007AFF",
+    borderRadius: verticalScale(14),
     paddingHorizontal: 13,
     paddingVertical: 8,
     height: 36,
@@ -175,10 +177,8 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   continueButton: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "#E5FBEB",
-    borderRadius: 7,
+    backgroundColor: "#FFF",
+    borderRadius: verticalScale(14),
     paddingHorizontal: 13,
     paddingVertical: 8,
     height: 36,
@@ -187,6 +187,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 7,
+  },
+  continueButtonText: {
+    fontFamily: "Inter",
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#007AFF",
+    textAlign: "center",
   },
   buttonText: {
     fontFamily: "Inter",

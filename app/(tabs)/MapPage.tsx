@@ -282,8 +282,7 @@ export default function MapPage() {
       {activeRoadId && !isTrackCompleted && (
         <Header
           title={
-            roads.find((road) => road.id === activeRoadId)?.name + " TRACK" ||
-            "TRACK"
+            roads.find((road) => road.id === activeRoadId)?.name || "TRACK"
           }
         />
       )}
@@ -294,6 +293,7 @@ export default function MapPage() {
         enablePanDownToClose={true}
         enableOverDrag={false}
         backgroundStyle={{ backgroundColor: "#118CF7" }}
+        handleIndicatorStyle={{ backgroundColor: "#FFF" }}
       >
         <BottomSheetView style={{ flex: 1, paddingBottom: 160 }}>
           {selectedPlaceId && activeRoadId ? (

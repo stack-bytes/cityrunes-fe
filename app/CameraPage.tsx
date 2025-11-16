@@ -55,7 +55,7 @@ export default function CameraPage() {
         (params.description as string) || "Description"
       );
 
-      if (result.similarity >= 0.3) {
+      if (result.similarity >= result.thresholdHint) {
         const placeId = params.id as string;
         const reward = params.reward ? Number(params.reward) : 0;
         if (placeId) {

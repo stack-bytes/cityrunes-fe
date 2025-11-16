@@ -36,7 +36,7 @@ export const MOCK_QUESTS: Quest[] = [
     feedback: "POSITIVE",
     quiz: [
       {
-        question: "In what year was the St. Mary’s Cathedral completed?",
+        question: "In what year was the Metropolitan Cathedral completed?",
         answers: ["1936", "1941", "1925", "1918"],
         correct_answer: 1,
       },
