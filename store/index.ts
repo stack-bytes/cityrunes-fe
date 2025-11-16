@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
+import leaderboardReducer from "./slices/leaderboardSlice";
 import placesReducer from "./slices/placesSlice";
 import roadsReducer from "./slices/roadsSlice";
 import userReducer from "./slices/userSlice";
@@ -8,6 +9,7 @@ export const store = configureStore({
     roads: roadsReducer,
     places: placesReducer,
     user: userReducer,
+    leaderboard: leaderboardReducer,
   },
 });
 

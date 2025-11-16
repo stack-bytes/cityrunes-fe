@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { verticalScale } from "react-native-size-matters";
@@ -37,9 +38,9 @@ export default function FeedCard({
         />
         <BasicButton
           containerStyles={styles.actionButton}
-          iconSource={require("../assets/images/buttons/eye.png")}
+          iconSource={require("../assets/images/badges/leaderboard.png")}
           iconStyles={styles.icon}
-          onPress={() => {}}
+          onPress={() => router.push("/LeaderboardPage")}
         />
       </View>
     </View>
