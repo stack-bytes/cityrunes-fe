@@ -7,7 +7,7 @@ import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
 import { AppleMaps, Coordinates } from "expo-maps";
 import { AppleMapsMarker } from "expo-maps/build/apple/AppleMaps.types";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,6 +15,7 @@ import { useSelector } from "react-redux";
 
 export default function MapPage() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const [location, setLocation] = useState<Location.LocationObject | null>(
     null
   );
@@ -89,6 +90,46 @@ export default function MapPage() {
       setActiveMarkers(getInitialMarkers());
     }
   }, [isTrackCompleted]);
+
+  // Handle navigation from FeedCard
+  useEffect(() => {
+    if (
+      params.roadId &&
+      params.placeId &&
+      params.openSheet === "true" &&
+      roads.length > 0
+    ) {
+      const roadId = params.roadId as string;
+      const placeId = params.placeId as string;
+
+      const road = roads.find((r) => r.id === roadId);
+      if (road && road.places.length > 0) {
+        const firstPlace = road.places[0];
+
+        // Set expanded road to show the MapBottomSheet (track start sheet)
+        setExpandedRoadId(roadId);
+
+        // Expand all markers for this road
+        const newActiveMarkers = new Set<string>(activeMarkers);
+        road.places.forEach((place) => {
+          newActiveMarkers.add(place.id);
+        });
+        setActiveMarkers(newActiveMarkers);
+
+        // Center map on the first place
+        setCoordinates({
+          latitude: firstPlace.coordinates.latitude,
+          longitude: firstPlace.coordinates.longitude,
+        });
+        setZoomLevel(15);
+
+        // Open the bottom sheet
+        setTimeout(() => {
+          openSheet();
+        }, 500);
+      }
+    }
+  }, [params.roadId, params.placeId, params.openSheet, roads]);
 
   const camera = useMemo(
     () => ({

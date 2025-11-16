@@ -98,9 +98,15 @@ export default function FeedPage() {
         }
         renderItem={({ item }) => {
           const photoPath = item.places?.[0]?.photos?.[0] || "statuie.png";
+          const firstPlaceId = item.places?.[0]?.id;
           return (
             <View style={styles.feedCardContainer}>
-              <FeedCard title={item.name} imageSource={IMAGE_MAP[photoPath]} />
+              <FeedCard
+                title={item.name}
+                imageSource={IMAGE_MAP[photoPath]}
+                roadId={item.id}
+                firstPlaceId={firstPlaceId}
+              />
             </View>
           );
         }}

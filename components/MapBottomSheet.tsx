@@ -131,21 +131,24 @@ const styles = StyleSheet.create({
   titleContainer: {
     position: "absolute",
     top: 149,
-    left: verticalScale(52),
-    width: 298,
-    height: 53,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    alignItems: "center",
   },
   title: {
     fontFamily: "SilkscreenBold",
     fontSize: verticalScale(16),
     color: "#E5FBEB",
-    lineHeight: 40,
+    lineHeight: 24,
+    textAlign: "center",
   },
   descriptionContainer: {
     position: "absolute",
     top: 195,
-    left: 52,
-    width: 319,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
     alignItems: "center",
   },
   description: {
@@ -158,8 +161,10 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     position: "absolute",
     top: 259,
-    left: 76,
+    left: 0,
+    right: 0,
     flexDirection: "row",
+    justifyContent: "center",
     gap: 17,
   },
   startQuizButton: {

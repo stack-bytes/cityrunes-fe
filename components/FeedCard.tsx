@@ -7,11 +7,15 @@ import BasicButton from "./BasicButton";
 interface FeedCardProps {
   title?: string;
   imageSource?: any;
+  roadId?: string;
+  firstPlaceId?: string;
 }
 
 export default function FeedCard({
   title = "Track Title",
   imageSource,
+  roadId,
+  firstPlaceId,
 }: FeedCardProps) {
   return (
     <View style={styles.card}>
@@ -34,7 +38,18 @@ export default function FeedCard({
           containerStyles={styles.actionButton}
           iconSource={require("../assets/images/buttons/map-pin.png")}
           iconStyles={styles.icon}
-          onPress={() => {}}
+          onPress={() => {
+            if (roadId && firstPlaceId) {
+              router.push({
+                pathname: "/(tabs)/MapPage",
+                params: {
+                  roadId,
+                  placeId: firstPlaceId,
+                  openSheet: "true",
+                },
+              });
+            }
+          }}
         />
         <BasicButton
           containerStyles={styles.actionButton}

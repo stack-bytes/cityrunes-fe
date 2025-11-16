@@ -1,5 +1,5 @@
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { usePathname, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import { Image, StyleSheet, TouchableOpacity, View } from "react-native";
 
 const ICONS = [
@@ -23,6 +23,18 @@ const ICONS = [
 export default function NavbarVector() {
   const [active, setActive] = useState("ap");
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Sync active state with current pathname
+  useEffect(() => {
+    if (pathname.includes("FeedPage")) {
+      setActive("ap");
+    } else if (pathname.includes("MapPage")) {
+      setActive("map");
+    } else if (pathname.includes("ProfilePage")) {
+      setActive("me");
+    }
+  }, [pathname]);
 
   const handleNavigation = (id: string) => {
     setActive(id);
