@@ -12,13 +12,28 @@ export default function LeaderboardPage() {
   const leaderboardUsers = useSelector(
     (state: RootState) => state.leaderboard.users
   );
+  const currentUser = useSelector((state: RootState) => state.user);
 
-  const sortedUsers = useMemo(() => {
-    return [...leaderboardUsers].sort((a, b) => b.coins - a.coins);
-  }, [leaderboardUsers]);
+  const allUsers = useMemo(() => {
+    const users = [
+      ...leaderboardUsers,
+      {
+        id: currentUser.id,
+        username: currentUser.username,
+        coins: currentUser.coins,
+        avatar: require("../assets/images/raresc4.png"),
+      },
+    ];
 
-  const topThree = sortedUsers.slice(0, 3);
-  const restOfUsers = sortedUsers.slice(3);
+    const uniqueUsers = Array.from(
+      new Map(users.map((user) => [user.id, user])).values()
+    );
+
+    return uniqueUsers.sort((a, b) => b.coins - a.coins);
+  }, [leaderboardUsers, currentUser]);
+
+  const topThree = allUsers.slice(0, 3);
+  const restOfUsers = allUsers.slice(3);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -37,9 +52,7 @@ export default function LeaderboardPage() {
         </View>
 
         <Text style={styles.headerTitle}>LeaderBoard</Text>
-        {/* Top 3 Podium */}
         <View style={styles.podiumContainer}>
-          {/* Second Place - Left */}
           {topThree[1] && (
             <View style={styles.podiumItem}>
               <View style={styles.avatarContainer}>
@@ -93,15 +106,31 @@ export default function LeaderboardPage() {
 
         {/* Rest of the leaderboard */}
         <View style={styles.listContainer}>
-          {restOfUsers.map((user, index) => (
-            <View key={user.id} style={styles.listItem}>
-              <Image source={user.avatar} style={styles.listAvatar} />
-              <View style={styles.listTextContainer}>
-                <Text style={styles.listUsername}>{user.username}</Text>
-                <Text style={styles.listPoints}>{user.coins} points</Text>
+          {restOfUsers.map((user, index) => {
+            const isCurrentUser = user.id === currentUser.id;
+            return (
+              <View
+                key={user.id}
+                style={[
+                  styles.listItem,
+                  isCurrentUser && styles.currentUserItem,
+                ]}
+              >
+                <Image source={user.avatar} style={styles.listAvatar} />
+                <View style={styles.listTextContainer}>
+                  <Text
+                    style={[
+                      styles.listUsername,
+                      isCurrentUser && styles.currentUserText,
+                    ]}
+                  >
+                    {user.username}
+                  </Text>
+                  <Text style={styles.listPoints}>{user.coins} points</Text>
+                </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -239,6 +268,6 @@ const styles = StyleSheet.create({
   listPoints: {
     fontFamily: "Silkscreen",
     fontSize: verticalScale(14),
-    color: "#118CF7",
+    color: "#FFF",
   },
 });

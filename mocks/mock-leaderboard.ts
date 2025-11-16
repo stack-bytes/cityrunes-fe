@@ -7,45 +7,27 @@ export interface LeaderboardUser {
 
 export const MOCK_LEADERBOARD_USERS: LeaderboardUser[] = [
   {
-    id: "user-1",
-    username: "Rares Catana",
-    coins: 0,
-    avatar: require("../assets/images/raresc4.png"),
-  },
-  {
     id: "user-2",
-    username: "ADNREI",
+    username: "Andrei",
     coins: 120,
-    avatar: require("../assets/images/raresc4.png"),
+    avatar: require("../assets/images/popa.jpg"),
   },
   {
     id: "user-3",
-    username: "Lucian",
+    username: "Adrian",
     coins: 95,
-    avatar: require("../assets/images/raresc4.png"),
+    avatar: require("../assets/images/raul.jpeg"),
   },
   {
     id: "user-4",
-    username: "MArian",
+    username: "Alexia",
     coins: 75,
-    avatar: require("../assets/images/raresc4.png"),
+    avatar: require("../assets/images/alexia.jpg"),
   },
   {
     id: "user-5",
-    username: "Alexandra",
-    coins: 65,
-    avatar: require("../assets/images/raresc4.png"),
-  },
-  {
-    id: "user-6",
     username: "Stefan",
     coins: 50,
-    avatar: require("../assets/images/raresc4.png"),
-  },
-  {
-    id: "user-7",
-    username: "Elena",
-    coins: 45,
-    avatar: require("../assets/images/raresc4.png"),
+    avatar: require("../assets/images/adi.png"),
   },
 ];
