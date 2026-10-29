@@ -42,24 +42,9 @@ const leaderboardSlice = createSlice({
       if (!state.trackLeaderboards[trackId]) {
         state.trackLeaderboards[trackId] = {};
 
-        // Initialize mock users with their coins
         MOCK_LEADERBOARD_USERS.forEach((user) => {
-          state.trackLeaderboards[trackId][user.id] = user.coins;
+          state.trackLeaderboards[trackId][user.id] = user.points;
         });
-
-        console.log(
-          "Initialized track:",
-          trackId,
-          "with users:",
-          state.trackLeaderboards[trackId]
-        );
-      } else {
-        console.log(
-          "Track already initialized:",
-          trackId,
-          "data:",
-          state.trackLeaderboards[trackId]
-        );
       }
     },
   },

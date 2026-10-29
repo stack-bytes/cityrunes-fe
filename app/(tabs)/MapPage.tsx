@@ -1,17 +1,32 @@
 import Header from "@/components/Header";
 import MapBottomSheet from "@/components/MapBottomSheet";
 import MapPopup from "@/components/MapPopup";
+import { getQuestForPlace } from "@/mocks/mock-quests";
 import { RootState } from "@/store";
 import { Road } from "@/types/road";
+import CustomMarker, { MarkerVariant } from "@/components/CustomMarker";
+import { Coordinates } from "@/types/place";
+import { resolveImage } from "@/utils/resolveImage";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import * as Location from "expo-location";
-import { AppleMaps, Coordinates } from "expo-maps";
-import { AppleMapsMarker } from "expo-maps/build/apple/AppleMaps.types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet } from "react-native";
+import MapView, { Marker, Region } from "react-native-maps";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useSelector } from "react-redux";
+
+interface MapMarker {
+  id: string;
+  coordinate: Coordinates;
+  iconKey?: string;
+  variant: MarkerVariant;
+}
+
+function zoomToDelta(zoom: number): Pick<Region, "latitudeDelta" | "longitudeDelta"> {
+  const latitudeDelta = 360 / Math.pow(2, zoom);
+  return { latitudeDelta, longitudeDelta: latitudeDelta };
+}
 
 export default function MapPage() {
   const router = useRouter();
@@ -43,21 +58,8 @@ export default function MapPage() {
     );
   }, [activeRoadId, roads, user.completedPlaces]);
 
-  const IMAGE_MAP: { [key: string]: any } = {
-    "biserica-reformata.png": require("../../assets/images/historic-landmarks/biserica-reformata.png"),
-    "sf-maria.png": require("../../assets/images/historic-landmarks/sf-maria.png"),
-    "catedrala-mitropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
-    "catedrala-metropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
-    "piata-victoriei.png": require("../../assets/images/historic-landmarks/piata-victoriei.png"),
-    "piata-libertatii.png": require("../../assets/images/historic-landmarks/piata-libertatii.png"),
-    "muzeul-comunist.png": require("../../assets/images/historic-landmarks/muzeul-comunist.png"),
-    "muzeul-arta.png": require("../../assets/images/historic-landmarks/muzeul-arta.png"),
-    "muzeul-satului.png": require("../../assets/images/historic-landmarks/muzeul-satului.png"),
-    "cimitirul-eroilor.png": require("../../assets/images/historic-landmarks/cimitirul-eroilor.png"),
-    "statuie.png": require("../../assets/images/historic-landmarks/statuie.png"),
-  };
-
   const sheetRef = useRef<BottomSheet>(null);
+  const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
     async function getCurrentLocation() {
@@ -131,15 +133,20 @@ export default function MapPage() {
     }
   }, [params.roadId, params.placeId, params.openSheet, roads]);
 
-  const camera = useMemo(
+  const region = useMemo<Region>(
     () => ({
-      coordinates,
-      zoom: zoomLevel,
-      pitch: 0,
-      heading: 0,
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      ...zoomToDelta(zoomLevel),
     }),
     [coordinates, zoomLevel]
   );
+
+  // Animate the map whenever the target region changes (e.g. FeedCard
+  // navigation centers on a place, or a marker tap focuses it).
+  useEffect(() => {
+    mapRef.current?.animateToRegion(region, 500);
+  }, [region]);
 
   const snapPoints = ["45%"];
 
@@ -158,19 +165,19 @@ export default function MapPage() {
     return new Set(initialMarkers);
   };
 
-  const assembleMarkers = (): AppleMapsMarker[] => {
-    const markers: AppleMapsMarker[] = [];
+  const assembleMarkers = (): MapMarker[] => {
+    const markers: MapMarker[] = [];
     const completedPlaces = user.completedPlaces || [];
 
     if (location) {
       markers.push({
         id: "user-location",
-        systemImage: "person",
-        coordinates: {
+        iconKey: "person",
+        coordinate: {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         },
-        tintColor: "blue",
+        variant: "user",
       });
     }
 
@@ -182,13 +189,12 @@ export default function MapPage() {
           activeRoad.places.forEach((place) => {
             markers.push({
               id: place.id,
-              title: place.name,
-              coordinates: {
+              coordinate: {
                 latitude: place.coordinates.latitude,
                 longitude: place.coordinates.longitude,
               },
-              systemImage: place.icon,
-              tintColor: "green",
+              iconKey: place.icon,
+              variant: "completed",
             });
           });
         } else {
@@ -196,12 +202,12 @@ export default function MapPage() {
             if (!completedPlaces.includes(place.id)) {
               markers.push({
                 id: place.id,
-                title: place.name,
-                coordinates: {
+                coordinate: {
                   latitude: place.coordinates.latitude,
                   longitude: place.coordinates.longitude,
                 },
-                systemImage: place.icon,
+                iconKey: place.icon,
+                variant: "default",
               });
             }
           });
@@ -217,12 +223,12 @@ export default function MapPage() {
           if (place) {
             markers.push({
               id: place.id,
-              title: place.name,
-              coordinates: {
+              coordinate: {
                 latitude: place.coordinates.latitude,
                 longitude: place.coordinates.longitude,
               },
-              systemImage: place.icon,
+              iconKey: place.icon,
+              variant: "default",
             });
           }
         });
@@ -248,7 +254,6 @@ export default function MapPage() {
     const isFirstPlace = targetRoad.places[0]?.id === markerId;
 
     if (isFirstPlace) {
-      // Always set expanded road ID and open sheet for first place marker
       setExpandedRoadId(targetRoad.id);
       openSheet();
     }
@@ -259,7 +264,6 @@ export default function MapPage() {
       setZoomLevel(15);
     }
 
-    // Expand all markers for this road
     const newActiveMarkers = new Set<string>(activeMarkers);
     targetRoad.places.forEach((place) => {
       newActiveMarkers.add(place.id);
@@ -278,7 +282,6 @@ export default function MapPage() {
     });
     setActiveMarkers(activeMarkersSet);
     setActiveRoadId(targetRoad.id);
-    console.log("Started tracking road:", targetRoad.name);
   };
 
   const handleMapClick = () => {
@@ -290,9 +293,7 @@ export default function MapPage() {
     if (expandedRoadId) {
       const expandedRoad = roads.find((road) => road.id === expandedRoadId);
       if (expandedRoad && expandedRoad.places.length > 0) {
-        const firstPlacePhoto =
-          expandedRoad.places[0].photos?.[0] || "statuie.png";
-        return IMAGE_MAP[firstPlacePhoto];
+        return resolveImage(expandedRoad.places[0]);
       }
     }
     return null;
@@ -300,18 +301,26 @@ export default function MapPage() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AppleMaps.View
+      <MapView
+        ref={mapRef}
         style={styles.maps}
-        cameraPosition={camera}
-        properties={{
-          pointsOfInterest: {
-            including: [],
-          },
-        }}
-        markers={assembleMarkers()}
-        onMapClick={handleMapClick}
-        onMarkerClick={(event) => handleMarkerClick(event.id!)}
-      ></AppleMaps.View>
+        initialRegion={region}
+        showsPointsOfInterests={false}
+        onPress={handleMapClick}
+      >
+        {assembleMarkers().map((marker) => (
+          <Marker
+            key={marker.id}
+            identifier={marker.id}
+            coordinate={marker.coordinate}
+            onPress={() => handleMarkerClick(marker.id)}
+            anchor={{ x: 0.5, y: 1 }}
+            tracksViewChanges={false}
+          >
+            <CustomMarker iconKey={marker.iconKey} variant={marker.variant} />
+          </Marker>
+        ))}
+      </MapView>
       {activeRoadId && !isTrackCompleted && (
         <Header
           title={
@@ -335,22 +344,16 @@ export default function MapPage() {
               const selectedPlace = activeRoad?.places.find(
                 (p) => p.id === selectedPlaceId
               );
+              const selectedQuest = selectedPlace
+                ? getQuestForPlace(selectedPlace.id)
+                : undefined;
               return selectedPlace ? (
                 <MapPopup
-                  localImageSource={
-                    selectedPlace.photos?.[0]
-                      ? IMAGE_MAP[selectedPlace.photos[0]]
-                      : null
-                  }
+                  localImageSource={resolveImage(selectedPlace)}
                   tag={selectedPlace.reward + "G"}
                   title={selectedPlace.name}
                   description={selectedPlace.description}
-                  isQuiz={
-                    activeRoad?.quests[activeRoad.places.indexOf(selectedPlace)]
-                      .type === "QUIZ"
-                      ? true
-                      : false
-                  }
+                  isQuiz={selectedQuest?.type === "QUIZ"}
                   onTakePhoto={() => {
                     router.push({
                       pathname: "/CameraPage",
@@ -365,24 +368,19 @@ export default function MapPage() {
                   }}
                   onStartQuiz={() => {
                     closeSheet();
-                    if (activeRoad) {
-                      const placeIndex =
-                        activeRoad.places.indexOf(selectedPlace);
-                      const quest = activeRoad.quests[placeIndex];
-                      const quiz = quest?.quiz?.[0];
-                      router.push({
-                        pathname: "/QuizPage",
-                        params: {
-                          question: quiz?.question || "Sample question?",
-                          answers: JSON.stringify(quiz?.answers || []),
-                          correctAnswer: String(quiz?.correct_answer || 0),
-                          placeId: selectedPlace.id,
-                          placeName: selectedPlace.name,
-                          reward: String(selectedPlace.reward),
-                          trackId: activeRoadId || "",
-                        },
-                      });
-                    }
+                    const quiz = selectedQuest?.quiz;
+                    router.push({
+                      pathname: "/QuizPage",
+                      params: {
+                        question: quiz?.question || "Sample question?",
+                        answers: JSON.stringify(quiz?.answers || []),
+                        correctAnswer: String(quiz?.correctAnswer || 0),
+                        placeId: selectedPlace.id,
+                        placeName: selectedPlace.name,
+                        reward: String(selectedPlace.reward),
+                        trackId: activeRoadId || "",
+                      },
+                    });
                   }}
                   onContinue={() => {
                     closeSheet();

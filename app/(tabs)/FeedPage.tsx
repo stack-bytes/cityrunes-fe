@@ -2,6 +2,7 @@ import BasicButton from "@/components/BasicButton";
 import FeedCard from "@/components/FeedCard";
 import MonumentCard from "@/components/MonumentCard";
 import { RootState } from "@/store";
+import { resolveImage } from "@/utils/resolveImage";
 import { useState } from "react";
 import {
   FlatList,
@@ -14,20 +15,6 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
 import { useSelector } from "react-redux";
-
-const IMAGE_MAP: { [key: string]: any } = {
-  "biserica-reformata.png": require("../../assets/images/historic-landmarks/biserica-reformata.png"),
-  "sf-maria.png": require("../../assets/images/historic-landmarks/sf-maria.png"),
-  "catedrala-mitropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
-  "catedrala-metropolitana.png": require("../../assets/images/historic-landmarks/catedrala-metropolitana.png"),
-  "piata-victoriei.png": require("../../assets/images/historic-landmarks/piata-victoriei.png"),
-  "piata-libertatii.png": require("../../assets/images/historic-landmarks/piata-libertatii.png"),
-  "muzeul-comunist.png": require("../../assets/images/historic-landmarks/muzeul-comunist.png"),
-  "muzeul-arta.png": require("../../assets/images/historic-landmarks/muzeul-arta.png"),
-  "muzeul-satului.png": require("../../assets/images/historic-landmarks/muzeul-satului.png"),
-  "cimitirul-eroilor.png": require("../../assets/images/historic-landmarks/cimitirul-eroilor.png"),
-  "statuie.png": require("../../assets/images/historic-landmarks/statuie.png"),
-};
 
 export default function FeedPage() {
   const roadsFromStore = useSelector((state: RootState) => state.roads);
@@ -61,11 +48,9 @@ export default function FeedPage() {
               <MonumentCard
                 title={roadsFromStore[0].name}
                 tag="Hyped"
-                localImageSource={
-                  IMAGE_MAP[
-                    roadsFromStore[0]?.places?.[0]?.photos?.[0] || "statuie.png"
-                  ]
-                }
+                localImageSource={resolveImage(
+                  roadsFromStore[0]?.places?.[0] ?? {}
+                )}
               />
             </View>
             <View style={styles.verticalLine} />
@@ -97,15 +82,14 @@ export default function FeedPage() {
           </>
         }
         renderItem={({ item }) => {
-          const photoPath = item.places?.[0]?.photos?.[0] || "statuie.png";
-          const firstPlaceId = item.places?.[0]?.id;
+          const firstPlace = item.places?.[0];
           return (
             <View style={styles.feedCardContainer}>
               <FeedCard
                 title={item.name}
-                imageSource={IMAGE_MAP[photoPath]}
+                imageSource={resolveImage(firstPlace ?? {})}
                 roadId={item.id}
-                firstPlaceId={firstPlaceId}
+                firstPlaceId={firstPlace?.id}
               />
             </View>
           );

@@ -5,7 +5,7 @@ export interface Road {
   id: string;
   name: string;
   description: string;
+  leaderboardId: string;
   places: Place[];
   quests: Quest[];
-  leaderboardId: string;
 }

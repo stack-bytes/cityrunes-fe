@@ -1,5 +1,7 @@
 import { RootState } from "@/store";
 import { addCoins } from "@/store/slices/userSlice";
+import { Badge } from "@/types/badge";
+import { resolveImage } from "@/utils/resolveImage";
 import { router } from "expo-router";
 import { Cog } from "lucide-react-native";
 import React from "react";
@@ -9,21 +11,30 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
 import { useDispatch, useSelector } from "react-redux";
 
-const BADGES = [
+const BADGES: Badge[] = [
   {
+    id: "badge-historian",
     name: "Historian",
-    image: require("../../assets/images/badges/Vector.png"),
+    price: 0,
     backgroundColor: "#D8ECFF",
+    imageId: "badges/Vector.png",
+    imageUrl: null,
   },
   {
+    id: "badge-scholar",
     name: "Scholar",
-    image: require("../../assets/images/badges/Vector2.png"),
+    price: 0,
     backgroundColor: "#CFE2FF",
+    imageId: "badges/Vector2.png",
+    imageUrl: null,
   },
   {
+    id: "badge-guardian",
     name: "Guardian",
-    image: require("../../assets/images/badges/pillar.png"),
+    price: 0,
     backgroundColor: "#FFE8F1",
+    imageId: "badges/pillar.png",
+    imageUrl: null,
   },
 ];
 
@@ -35,8 +46,7 @@ export default function ProfilePage() {
   const balance = user.coins;
   const purchasedBadges = user.purchasedBadges || [];
 
-  // Combine default badges with purchased badges
-  const allBadges = [...BADGES, ...purchasedBadges];
+  const allBadges: Badge[] = [...BADGES, ...purchasedBadges];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -79,13 +89,13 @@ export default function ProfilePage() {
       >
         {allBadges.map((badge, index) => (
           <TouchableOpacity
-            key={`${badge.name}-${index}`}
+            key={`${badge.id}-${index}`}
             style={[
               styles.statCard,
               { backgroundColor: badge.backgroundColor },
             ]}
           >
-            <Image source={badge.image} style={styles.badgeImage} />
+            <Image source={resolveImage(badge)} style={styles.badgeImage} />
           </TouchableOpacity>
         ))}
       </ScrollView>

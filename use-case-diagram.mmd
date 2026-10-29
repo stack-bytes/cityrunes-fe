@@ -1,0 +1,54 @@
+flowchart LR
+    Runner(("👤<br/>Runner<br/>(Player)"))
+    VisionAPI(("🖥️<br/>Location Verification<br/>Service"))
+    Maps(("🗺️<br/>Maps / GPS<br/>Provider"))
+    Auth(("🔑<br/>OAuth Provider<br/>(Apple / Google)"))
+
+    subgraph System["CityRunes App"]
+        direction TB
+        UC1(["Authenticate<br/>(Login / Register)"])
+        UC2(["Browse Track Feed"])
+        UC3(["Search / Filter Tracks"])
+        UC4(["View Tracks on Map"])
+        UC5(["Start a Track"])
+        UC6(["View Place Details"])
+        UC7(["Complete Place<br/>via Photo"])
+        UC8(["Complete Place<br/>via Quiz"])
+        UC9(["Earn Coins & Points"])
+        UC10(["View Leaderboard"])
+        UC11(["View Profile & Badges"])
+        UC12(["Open Store"])
+        UC13(["Purchase Badge"])
+        UC14(["Verify Photo<br/>Against Landmark"])
+        UC15(["Grant Location<br/>Permission"])
+    end
+
+    Runner --- UC1
+    Runner --- UC2
+    Runner --- UC3
+    Runner --- UC4
+    Runner --- UC5
+    Runner --- UC6
+    Runner --- UC7
+    Runner --- UC8
+    Runner --- UC10
+    Runner --- UC11
+    Runner --- UC12
+    Runner --- UC13
+
+    UC2 -. include .-> UC3
+    UC4 -. include .-> UC15
+    UC5 -. include .-> UC4
+    UC6 -. extend .-> UC7
+    UC6 -. extend .-> UC8
+    UC7 -. include .-> UC14
+    UC7 -. include .-> UC9
+    UC8 -. include .-> UC9
+    UC9 -. extend .-> UC10
+    UC11 -. extend .-> UC12
+    UC12 -. include .-> UC13
+
+    UC1 --- Auth
+    UC14 --- VisionAPI
+    UC4 --- Maps
+    UC15 --- Maps

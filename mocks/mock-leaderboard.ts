@@ -1,33 +1,32 @@
-export interface LeaderboardUser {
-  id: string;
-  username: string;
-  coins: number;
-  avatar?: any;
-}
+import { LeaderboardUser } from "@/types/leaderboard";
 
 export const MOCK_LEADERBOARD_USERS: LeaderboardUser[] = [
   {
     id: "user-2",
     username: "Andrei",
-    coins: 120,
-    avatar: require("../assets/images/popa.jpg"),
+    points: 120,
+    avatarId: "popa.jpg",
+    avatarUrl: null,
   },
   {
     id: "user-3",
     username: "Adrian",
-    coins: 95,
-    avatar: require("../assets/images/raul.jpeg"),
+    points: 95,
+    avatarId: "raul.jpeg",
+    avatarUrl: null,
   },
   {
     id: "user-4",
     username: "Alexia",
-    coins: 75,
-    avatar: require("../assets/images/alexia.jpg"),
+    points: 75,
+    avatarId: "alexia.jpg",
+    avatarUrl: null,
   },
   {
     id: "user-5",
     username: "Stefan",
-    coins: 50,
-    avatar: require("../assets/images/adi.png"),
+    points: 50,
+    avatarId: "adi.png",
+    avatarUrl: null,
   },
 ];

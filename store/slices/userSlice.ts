@@ -1,26 +1,28 @@
 import { MOCK_USER } from "@/mocks/user-mock";
+import { Badge } from "@/types/badge";
 import { User } from "@/types/user";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface PurchasedBadge {
-  name: string;
-  image: any;
-  backgroundColor: string;
+interface UserState extends User {
+  completedPlaces: string[];
+  purchasedBadges: Badge[];
 }
+
+const initialState: UserState = {
+  ...MOCK_USER,
+  completedPlaces: [],
+  purchasedBadges: [],
+};
 
 const userSlice = createSlice({
   name: "user",
-  initialState: {
-    ...MOCK_USER,
-    completedPlaces: [] as string[],
-    purchasedBadges: [] as PurchasedBadge[],
-  },
+  initialState,
   reducers: {
     getUser: (state) => {
       return state;
     },
     setUser: (state, action: PayloadAction<User>) => {
-      return action.payload;
+      Object.assign(state, action.payload);
     },
     addCoins: (state, action: PayloadAction<number>) => {
       state.coins += action.payload;
@@ -35,13 +37,13 @@ const userSlice = createSlice({
     },
     purchaseBadge: (
       state,
-      action: PayloadAction<{ badge: PurchasedBadge; price: number }>
+      action: PayloadAction<{ badge: Badge; price: number }>
     ) => {
       if (!state.purchasedBadges) {
         state.purchasedBadges = [];
       }
       const alreadyPurchased = state.purchasedBadges.some(
-        (b) => b.name === action.payload.badge.name
+        (b) => b.id === action.payload.badge.id
       );
       if (!alreadyPurchased && state.coins >= action.payload.price) {
         state.coins -= action.payload.price;
@@ -54,4 +56,3 @@ const userSlice = createSlice({
 export const { getUser, setUser, addCoins, completePlace, purchaseBadge } =
   userSlice.actions;
 export default userSlice.reducer;
-export type { PurchasedBadge };

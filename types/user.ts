@@ -4,8 +4,7 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  password: string;
-  photos: string[];
+  avatarUrl: string | null;
   badges: Badge[];
   coins: number;
 }

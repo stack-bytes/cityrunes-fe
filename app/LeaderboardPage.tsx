@@ -1,6 +1,8 @@
 import { MOCK_LEADERBOARD_USERS } from "@/mocks/mock-leaderboard";
 import { RootState } from "@/store";
 import { initializeTrackLeaderboard } from "@/store/slices/leaderboardSlice";
+import { LeaderboardUser } from "@/types/leaderboard";
+import { resolveImage } from "@/utils/resolveImage";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import React, { useEffect, useMemo } from "react";
@@ -33,20 +35,17 @@ export default function LeaderboardPage() {
 
     const trackPoints = trackLeaderboards[trackId] || {};
 
-    const users = [
-      ...MOCK_LEADERBOARD_USERS.map((user) => {
-        const points = trackPoints[user.id] || 0;
-        console.log(`User ${user.username} (${user.id}): ${points} points`);
-        return {
-          ...user,
-          points,
-        };
-      }),
+    const users: LeaderboardUser[] = [
+      ...MOCK_LEADERBOARD_USERS.map((user) => ({
+        ...user,
+        points: trackPoints[user.id] || 0,
+      })),
       {
         id: currentUser.id,
         username: currentUser.username,
         points: trackPoints[currentUser.id] || 0,
-        avatar: require("../assets/images/raresc4.png"),
+        avatarId: "raresc4.png",
+        avatarUrl: currentUser.avatarUrl,
       },
     ];
 
@@ -82,7 +81,10 @@ export default function LeaderboardPage() {
             <View style={styles.podiumItem}>
               <View style={styles.avatarContainer}>
                 <Image
-                  source={topThree[1].avatar}
+                  source={resolveImage({
+                    imageId: topThree[1].avatarId,
+                    imageUrl: topThree[1].avatarUrl,
+                  })}
                   style={styles.podiumAvatar}
                 />
               </View>
@@ -98,7 +100,10 @@ export default function LeaderboardPage() {
             <View style={styles.podiumItem}>
               <View style={styles.avatarContainer}>
                 <Image
-                  source={topThree[0].avatar}
+                  source={resolveImage({
+                    imageId: topThree[0].avatarId,
+                    imageUrl: topThree[0].avatarUrl,
+                  })}
                   style={styles.podiumAvatar}
                 />
               </View>
@@ -114,7 +119,10 @@ export default function LeaderboardPage() {
             <View style={styles.podiumItem}>
               <View style={styles.avatarContainer}>
                 <Image
-                  source={topThree[2].avatar}
+                  source={resolveImage({
+                    imageId: topThree[2].avatarId,
+                    imageUrl: topThree[2].avatarUrl,
+                  })}
                   style={styles.podiumAvatar}
                 />
               </View>
@@ -141,7 +149,13 @@ export default function LeaderboardPage() {
                   isCurrentUser && styles.currentUserItem,
                 ]}
               >
-                <Image source={user.avatar} style={styles.listAvatar} />
+                <Image
+                  source={resolveImage({
+                    imageId: user.avatarId,
+                    imageUrl: user.avatarUrl,
+                  })}
+                  style={styles.listAvatar}
+                />
                 <View style={styles.listTextContainer}>
                   <Text
                     style={[

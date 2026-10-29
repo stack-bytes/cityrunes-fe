@@ -2,7 +2,8 @@ export interface LeaderboardUser {
   id: string;
   username: string;
   points: number;
-  avatar?: any;
+  avatarId: string | null;
+  avatarUrl: string | null;
 }
 
 export interface TrackLeaderboard {

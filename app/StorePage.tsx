@@ -1,5 +1,8 @@
+import { MOCK_STORE_BADGES } from "@/mocks/mock-store";
 import { RootState } from "@/store";
 import { purchaseBadge } from "@/store/slices/userSlice";
+import { Badge } from "@/types/badge";
+import { resolveImage } from "@/utils/resolveImage";
 import { router } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 import React from "react";
@@ -16,56 +19,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
 import { useDispatch, useSelector } from "react-redux";
 
-const STORE_ITEMS = [
-  {
-    name: "Airplane",
-    image: require("../assets/images/store/airplane.png"),
-    backgroundColor: "#FFE8F1",
-    price: 50,
-  },
-  {
-    name: "Alarm",
-    image: require("../assets/images/store/alarm.png"),
-    backgroundColor: "#D8ECFF",
-    price: 30,
-  },
-  {
-    name: "Anchor",
-    image: require("../assets/images/store/anchor.png"),
-    backgroundColor: "#CFE2FF",
-    price: 40,
-  },
-  {
-    name: "Archery",
-    image: require("../assets/images/store/archery.png"),
-    backgroundColor: "#FFE8F1",
-    price: 60,
-  },
-  {
-    name: "Brain",
-    image: require("../assets/images/store/brain.png"),
-    backgroundColor: "#D8ECFF",
-    price: 70,
-  },
-  {
-    name: "Cowboy",
-    image: require("../assets/images/store/cowboy.png"),
-    backgroundColor: "#CFE2FF",
-    price: 80,
-  },
-];
-
 export default function StorePage() {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
   const purchasedBadges = user.purchasedBadges || [];
 
-  // Filter out purchased items
-  const availableItems = STORE_ITEMS.filter(
-    (item) => !purchasedBadges.some((b) => b.name === item.name)
+  const availableItems = MOCK_STORE_BADGES.filter(
+    (item) => !purchasedBadges.some((b) => b.id === item.id)
   );
 
-  const handlePurchase = (item: (typeof STORE_ITEMS)[0]) => {
+  const handlePurchase = (item: Badge) => {
     if (user.coins < item.price) {
       Alert.alert(
         "Insufficient Funds",
@@ -79,16 +42,7 @@ export default function StorePage() {
       {
         text: "Buy",
         onPress: () => {
-          dispatch(
-            purchaseBadge({
-              badge: {
-                name: item.name,
-                image: item.image,
-                backgroundColor: item.backgroundColor,
-              },
-              price: item.price,
-            })
-          );
+          dispatch(purchaseBadge({ badge: item, price: item.price }));
           Alert.alert("Success!", `You purchased ${item.name}!`);
         },
       },
@@ -123,16 +77,16 @@ export default function StorePage() {
           </View>
         ) : (
           <View style={styles.grid}>
-            {availableItems.map((item, index) => (
+            {availableItems.map((item) => (
               <TouchableOpacity
-                key={index}
+                key={item.id}
                 style={[
                   styles.itemCard,
                   { backgroundColor: item.backgroundColor },
                 ]}
                 onPress={() => handlePurchase(item)}
               >
-                <Image source={item.image} style={styles.itemImage} />
+                <Image source={resolveImage(item)} style={styles.itemImage} />
                 <View style={styles.priceContainer}>
                   <Text style={styles.priceText}>{item.price}G</Text>
                 </View>

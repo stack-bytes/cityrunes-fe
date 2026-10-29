@@ -1,18 +1,19 @@
 import { MOCK_ROADS } from "@/mocks/mock-roads";
-import { createSlice } from "@reduxjs/toolkit";
+import { Road } from "@/types/road";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const roadsSclice = createSlice({
+const roadsSlice = createSlice({
   name: "roads",
-  initialState: MOCK_ROADS,
+  initialState: MOCK_ROADS as Road[],
   reducers: {
     getRoads: (state) => {
       return state;
     },
-    setRoads: (state, action) => {
+    setRoads: (state, action: PayloadAction<Road[]>) => {
       return action.payload;
     },
   },
 });
 
-export const { getRoads, setRoads } = roadsSclice.actions;
-export default roadsSclice.reducer;
+export const { getRoads, setRoads } = roadsSlice.actions;
+export default roadsSlice.reducer;
