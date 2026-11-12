@@ -1,6 +1,7 @@
 import { MOCK_PLACES } from "@/mocks/mock-places";
 import { Place } from "@/types/place";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { loadCatalog } from "./catalogSlice";
 
 const placesSlice = createSlice({
   name: "places",
@@ -12,6 +13,11 @@ const placesSlice = createSlice({
     setPlaces: (state, action: PayloadAction<Place[]>) => {
       return action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(loadCatalog.fulfilled, (_state, action) => {
+      return action.payload.places;
+    });
   },
 });
 

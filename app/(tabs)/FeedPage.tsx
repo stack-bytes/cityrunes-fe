@@ -3,7 +3,7 @@ import FeedCard from "@/components/FeedCard";
 import MonumentCard from "@/components/MonumentCard";
 import { RootState } from "@/store";
 import { resolveImage } from "@/utils/resolveImage";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   FlatList,
   Image,
@@ -19,14 +19,20 @@ import { useSelector } from "react-redux";
 export default function FeedPage() {
   const roadsFromStore = useSelector((state: RootState) => state.roads);
   const [searchText, setSearchText] = useState("");
-  const [tracks, setTracks] = useState(roadsFromStore);
+  const [appliedQuery, setAppliedQuery] = useState("");
+
+  const tracks = useMemo(() => {
+    const matches = roadsFromStore.filter((track) =>
+      track.name.toLowerCase().includes(appliedQuery.toLowerCase())
+    );
+    return matches.length ? matches : roadsFromStore;
+  }, [roadsFromStore, appliedQuery]);
+
+  const featuredRoad = roadsFromStore[0];
 
   const onSearchButtonPress = () => {
+    setAppliedQuery(searchText);
     setSearchText("");
-    const newTracks = roadsFromStore.filter((track) =>
-      track.name.toLowerCase().includes(searchText.toLowerCase())
-    );
-    newTracks.length && setTracks(newTracks);
   };
 
   return (
@@ -44,15 +50,17 @@ export default function FeedPage() {
               <Text style={styles.text}>CITYRUNES</Text>
             </View>
 
-            <View style={styles.cardContainer}>
-              <MonumentCard
-                title={roadsFromStore[0].name}
-                tag="Hyped"
-                localImageSource={resolveImage(
-                  roadsFromStore[0]?.places?.[0] ?? {}
-                )}
-              />
-            </View>
+            {featuredRoad && (
+              <View style={styles.cardContainer}>
+                <MonumentCard
+                  title={featuredRoad.name}
+                  tag="Hyped"
+                  localImageSource={resolveImage(
+                    featuredRoad.places?.[0] ?? {}
+                  )}
+                />
+              </View>
+            )}
             <View style={styles.verticalLine} />
 
             <View style={styles.search}>

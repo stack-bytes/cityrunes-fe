@@ -1,12 +1,16 @@
 import { configureStore } from "@reduxjs/toolkit";
+import catalogReducer from "./slices/catalogSlice";
 import placesReducer from "./slices/placesSlice";
+import questsReducer from "./slices/questsSlice";
 import roadsReducer from "./slices/roadsSlice";
 import userReducer from "./slices/userSlice";
 
 export const store = configureStore({
   reducer: {
+    catalog: catalogReducer,
     roads: roadsReducer,
     places: placesReducer,
+    quests: questsReducer,
     user: userReducer,
   },
 });

@@ -3,7 +3,6 @@ import { useTrackLeaderboard } from "@/hooks/useTrackLeaderboard";
 import { resolveImage } from "@/utils/resolveImage";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React from "react";
 import {
   ActivityIndicator,
   Image,

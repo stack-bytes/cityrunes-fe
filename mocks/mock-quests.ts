@@ -99,7 +99,3 @@ export const MOCK_QUESTS: Quest[] = [
     quiz: null,
   },
 ];
-
-export function getQuestForPlace(placeId: string): Quest | undefined {
-  return MOCK_QUESTS.find((quest) => quest.placeId === placeId);
-}

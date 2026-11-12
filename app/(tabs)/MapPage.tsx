@@ -1,8 +1,8 @@
 import Header from "@/components/Header";
 import MapBottomSheet from "@/components/MapBottomSheet";
 import MapPopup from "@/components/MapPopup";
-import { getQuestForPlace } from "@/mocks/mock-quests";
 import { RootState } from "@/store";
+import { selectQuestByPlaceId } from "@/store/slices/questsSlice";
 import { Road } from "@/types/road";
 import CustomMarker, { MarkerVariant } from "@/components/CustomMarker";
 import { Coordinates } from "@/types/place";
@@ -37,6 +37,7 @@ export default function MapPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const roadsFromStore = useSelector((state: RootState) => state.roads);
   const user = useSelector((state: RootState) => state.user);
+  const quests = useSelector((state: RootState) => state.quests);
   const [roads, setRoads] = useState<Road[]>([]);
   const [activeMarkers, setActiveMarkers] = useState<Set<string>>(new Set());
   const [expandedRoadId, setExpandedRoadId] = useState<string | null>(null);
@@ -345,7 +346,7 @@ export default function MapPage() {
                 (p) => p.id === selectedPlaceId
               );
               const selectedQuest = selectedPlace
-                ? getQuestForPlace(selectedPlace.id)
+                ? selectQuestByPlaceId(quests, selectedPlace.id)
                 : undefined;
               return selectedPlace ? (
                 <MapPopup
