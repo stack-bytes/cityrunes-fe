@@ -1,63 +1,35 @@
-import { MOCK_LEADERBOARD_USERS } from "@/mocks/mock-leaderboard";
 import { RootState } from "@/store";
-import { initializeTrackLeaderboard } from "@/store/slices/leaderboardSlice";
-import { LeaderboardUser } from "@/types/leaderboard";
+import { useTrackLeaderboard } from "@/hooks/useTrackLeaderboard";
 import { resolveImage } from "@/utils/resolveImage";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React, { useEffect, useMemo } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React from "react";
+import {
+  ActivityIndicator,
+  Image,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 export default function LeaderboardPage() {
   const params = useLocalSearchParams();
   const trackId = params.trackId as string;
-  const dispatch = useDispatch();
 
-  const trackLeaderboards = useSelector(
-    (state: RootState) => state.leaderboard.trackLeaderboards
-  );
   const currentUser = useSelector((state: RootState) => state.user);
+  const { data, isPending, isError, error, refetch } = useTrackLeaderboard(trackId);
 
-  useEffect(() => {
-    if (trackId) {
-      dispatch(initializeTrackLeaderboard({ trackId }));
-    }
-  }, [trackId]);
-
-  const allUsers = useMemo(() => {
-    if (!trackId) {
-      return [];
-    }
-
-    const trackPoints = trackLeaderboards[trackId] || {};
-
-    const users: LeaderboardUser[] = [
-      ...MOCK_LEADERBOARD_USERS.map((user) => ({
-        ...user,
-        points: trackPoints[user.id] || 0,
-      })),
-      {
-        id: currentUser.id,
-        username: currentUser.username,
-        points: trackPoints[currentUser.id] || 0,
-        avatarId: "raresc4.png",
-        avatarUrl: currentUser.avatarUrl,
-      },
-    ];
-
-    const uniqueUsers = Array.from(
-      new Map(users.map((user) => [user.id, user])).values()
-    );
-
-    return uniqueUsers.sort((a, b) => b.points - a.points);
-  }, [trackLeaderboards, trackId, currentUser]);
-
+  const allUsers = data?.users ?? [];
   const topThree = allUsers.slice(0, 3);
   const restOfUsers = allUsers.slice(3);
+
+  const isLoading = !!trackId && isPending;
+  const hasUsers = allUsers.length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -76,101 +48,132 @@ export default function LeaderboardPage() {
         </View>
 
         <Text style={styles.headerTitle}>LeaderBoard</Text>
-        <View style={styles.podiumContainer}>
-          {topThree[1] && (
-            <View style={styles.podiumItem}>
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={resolveImage({
-                    imageId: topThree[1].avatarId,
-                    imageUrl: topThree[1].avatarUrl,
-                  })}
-                  style={styles.podiumAvatar}
-                />
-              </View>
-              <Text style={styles.podiumName}>{topThree[1].username}</Text>
-              <View style={[styles.podiumBar, styles.silverBar]}>
-                <Text style={styles.podiumScore}>{topThree[1].points}</Text>
-              </View>
+
+        {isLoading && (
+          <View style={styles.stateContainer}>
+            <ActivityIndicator size="large" color="#118CF7" />
+          </View>
+        )}
+
+        {!isLoading && isError && (
+          <View style={styles.stateContainer}>
+            <Text style={styles.stateText}>
+              {error instanceof Error
+                ? error.message
+                : "Could not load the leaderboard"}
+            </Text>
+            <TouchableOpacity
+              style={styles.retryButton}
+              onPress={() => refetch()}
+            >
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!isLoading && !isError && !hasUsers && (
+          <View style={styles.stateContainer}>
+            <Text style={styles.stateText}>No players yet</Text>
+          </View>
+        )}
+
+        {!isLoading && !isError && hasUsers && (
+          <>
+            <View style={styles.podiumContainer}>
+              {topThree[1] && (
+                <View style={styles.podiumItem}>
+                  <View style={styles.avatarContainer}>
+                    <Image
+                      source={resolveImage({
+                        imageId: topThree[1].avatarId,
+                        imageUrl: topThree[1].avatarUrl,
+                      })}
+                      style={styles.podiumAvatar}
+                    />
+                  </View>
+                  <Text style={styles.podiumName}>{topThree[1].username}</Text>
+                  <View style={[styles.podiumBar, styles.silverBar]}>
+                    <Text style={styles.podiumScore}>{topThree[1].points}</Text>
+                  </View>
+                </View>
+              )}
+
+              {topThree[0] && (
+                <View style={styles.podiumItem}>
+                  <View style={styles.avatarContainer}>
+                    <Image
+                      source={resolveImage({
+                        imageId: topThree[0].avatarId,
+                        imageUrl: topThree[0].avatarUrl,
+                      })}
+                      style={styles.podiumAvatar}
+                    />
+                  </View>
+                  <Text style={styles.podiumName}>{topThree[0].username}</Text>
+                  <View style={[styles.podiumBar, styles.goldBar]}>
+                    <Text style={styles.podiumScore}>{topThree[0].points}</Text>
+                  </View>
+                </View>
+              )}
+
+              {topThree[2] && (
+                <View style={styles.podiumItem}>
+                  <View style={styles.avatarContainer}>
+                    <Image
+                      source={resolveImage({
+                        imageId: topThree[2].avatarId,
+                        imageUrl: topThree[2].avatarUrl,
+                      })}
+                      style={styles.podiumAvatar}
+                    />
+                  </View>
+                  <Text style={styles.podiumName}>{topThree[2].username}</Text>
+                  <View style={[styles.podiumBar, styles.bronzeBar]}>
+                    <Text style={styles.podiumScore}>{topThree[2].points}</Text>
+                  </View>
+                </View>
+              )}
             </View>
-          )}
 
-          {/* First Place - Center */}
-          {topThree[0] && (
-            <View style={styles.podiumItem}>
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={resolveImage({
-                    imageId: topThree[0].avatarId,
-                    imageUrl: topThree[0].avatarUrl,
-                  })}
-                  style={styles.podiumAvatar}
-                />
-              </View>
-              <Text style={styles.podiumName}>{topThree[0].username}</Text>
-              <View style={[styles.podiumBar, styles.goldBar]}>
-                <Text style={styles.podiumScore}>{topThree[0].points}</Text>
-              </View>
-            </View>
-          )}
+            <View style={styles.divider} />
 
-          {/* Third Place - Right */}
-          {topThree[2] && (
-            <View style={styles.podiumItem}>
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={resolveImage({
-                    imageId: topThree[2].avatarId,
-                    imageUrl: topThree[2].avatarUrl,
-                  })}
-                  style={styles.podiumAvatar}
-                />
-              </View>
-              <Text style={styles.podiumName}>{topThree[2].username}</Text>
-              <View style={[styles.podiumBar, styles.bronzeBar]}>
-                <Text style={styles.podiumScore}>{topThree[2].points}</Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Divider */}
-        <View style={styles.divider} />
-
-        {/* Rest of the leaderboard */}
-        <View style={styles.listContainer}>
-          {restOfUsers.map((user, index) => {
-            const isCurrentUser = user.id === currentUser.id;
-            return (
-              <View
-                key={user.id}
-                style={[
-                  styles.listItem,
-                  isCurrentUser && styles.currentUserItem,
-                ]}
-              >
-                <Image
-                  source={resolveImage({
-                    imageId: user.avatarId,
-                    imageUrl: user.avatarUrl,
-                  })}
-                  style={styles.listAvatar}
-                />
-                <View style={styles.listTextContainer}>
-                  <Text
+            <View style={styles.listContainer}>
+              {restOfUsers.map((user) => {
+                const isCurrentUser = user.id === currentUser.id;
+                return (
+                  <View
+                    key={user.id}
                     style={[
-                      styles.listUsername,
-                      isCurrentUser && styles.currentUserText,
+                      styles.listItem,
+                      isCurrentUser && styles.currentUserItem,
                     ]}
                   >
-                    {user.username}
-                  </Text>
-                  <Text style={styles.listPoints}>{user.points} points</Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
+                    <Image
+                      source={resolveImage({
+                        imageId: user.avatarId,
+                        imageUrl: user.avatarUrl,
+                      })}
+                      style={styles.listAvatar}
+                    />
+                    <View style={styles.listTextContainer}>
+                      <Text
+                        style={[
+                          styles.listUsername,
+                          isCurrentUser && styles.currentUserText,
+                        ]}
+                      >
+                        {user.username}
+                      </Text>
+                      <Text style={styles.listPoints}>
+                        {user.points} points
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -210,6 +213,30 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: verticalScale(20),
+  },
+  stateContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: verticalScale(30),
+    paddingVertical: verticalScale(60),
+    gap: verticalScale(20),
+  },
+  stateText: {
+    fontFamily: "SilkscreenBold",
+    fontSize: verticalScale(16),
+    color: "#118CF7",
+    textAlign: "center",
+  },
+  retryButton: {
+    backgroundColor: "#007AFF",
+    borderRadius: verticalScale(20),
+    paddingVertical: verticalScale(12),
+    paddingHorizontal: verticalScale(32),
+  },
+  retryButtonText: {
+    fontFamily: "SilkscreenBold",
+    fontSize: verticalScale(16),
+    color: "#FFF",
   },
   podiumContainer: {
     flexDirection: "row",
