@@ -1,7 +1,12 @@
+import { signInWithEmail } from "@/actions/auth";
 import { MOCK_USER } from "@/mocks/user-mock";
 import { Badge } from "@/types/badge";
 import { User } from "@/types/user";
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  PayloadAction,
+} from "@reduxjs/toolkit";
 
 interface UserState extends User {
   completedPlaces: string[];
@@ -13,6 +18,25 @@ const initialState: UserState = {
   completedPlaces: [],
   purchasedBadges: [],
 };
+
+interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export const loginUser = createAsyncThunk<
+  User,
+  LoginCredentials,
+  { rejectValue: string }
+>("user/login", async ({ email, password }, { rejectWithValue }) => {
+  try {
+    return await signInWithEmail(email, password);
+  } catch (error) {
+    return rejectWithValue(
+      error instanceof Error ? error.message : "Could not log in."
+    );
+  }
+});
 
 const userSlice = createSlice({
   name: "user",
@@ -50,6 +74,13 @@ const userSlice = createSlice({
         state.purchasedBadges.push(action.payload.badge);
       }
     },
+  },
+  extraReducers: (builder) => {
+    builder.addCase(loginUser.fulfilled, (_state, action) => ({
+      ...action.payload,
+      completedPlaces: [],
+      purchasedBadges: [],
+    }));
   },
 });
 

@@ -7,11 +7,16 @@ interface ButtonProps {
   iconSource?: any;
   iconStyles?: object;
   onPress: any;
+  disabled?: boolean;
 }
 
 export default function BasicButton(props: ButtonProps) {
   return (
-    <TouchableOpacity style={props.containerStyles} onPress={props.onPress}>
+    <TouchableOpacity
+      style={[props.containerStyles, props.disabled && { opacity: 0.6 }]}
+      onPress={props.onPress}
+      disabled={props.disabled}
+    >
       {props.text && <Text style={props.textStyles}>{props.text}</Text>}
       {props.iconSource && (
         <Image source={props.iconSource} style={props.iconStyles} />

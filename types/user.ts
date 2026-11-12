@@ -8,3 +8,12 @@ export interface User {
   badges: Badge[];
   coins: number;
 }
+
+export interface UserRow {
+  id: string;
+  username: string;
+  email: string;
+  avatar_url: string | null;
+  coins: number;
+  created_at: string;
+}

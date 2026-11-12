@@ -32,7 +32,7 @@ export default function Welcome() {
           text="Login"
           containerStyles={styles.loginButton}
           textStyles={styles.loginText}
-          onPress={() => router.navigate("/(tabs)/FeedPage")}
+          onPress={() => router.navigate("/(auth)/Login")}
         />
         <BasicButton
           text="Register"
