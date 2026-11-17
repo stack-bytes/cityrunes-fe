@@ -1,17 +1,29 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
 
 interface HeaderProps {
   title: string;
+  onLeave?: () => void;
+  leaveDisabled?: boolean;
 }
 
-export default function Header({ title }: HeaderProps) {
+export default function Header({ title, onLeave, leaveDisabled }: HeaderProps) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.dialog}>
         <Text style={styles.heading}>{title}</Text>
+        {onLeave && (
+          <TouchableOpacity
+            style={[styles.leaveButton, leaveDisabled && styles.leaveDisabled]}
+            onPress={onLeave}
+            disabled={leaveDisabled}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.leaveText}>Leave</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -33,6 +45,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     justifyContent: "center",
     alignItems: "center",
+    gap: 8,
   },
   heading: {
     fontFamily: "SilkscreenBold",
@@ -42,5 +55,19 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textTransform: "uppercase",
     flexWrap: "wrap",
+  },
+  leaveButton: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 4,
+  },
+  leaveDisabled: {
+    opacity: 0.5,
+  },
+  leaveText: {
+    fontFamily: "SilkscreenBold",
+    fontSize: 12,
+    color: "#118CF7",
   },
 });

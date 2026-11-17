@@ -8,6 +8,8 @@ interface MapBottomSheetProps {
   tag?: string;
   title?: string;
   description?: string;
+  startLabel?: string;
+  startDisabled?: boolean;
   onStartTrack?: () => void;
   onContinue?: () => void;
 }
@@ -18,6 +20,8 @@ export default function MapBottomSheet({
   tag = "10G",
   title = "Grand Monument",
   description = "Welcome to grand monument, look around at the clues and when you are ready press the button to take the quiz",
+  startLabel = "Start Track",
+  startDisabled = false,
   onStartTrack,
   onContinue,
 }: MapBottomSheetProps) {
@@ -55,14 +59,15 @@ export default function MapBottomSheet({
 
         <View style={styles.buttonsContainer}>
           <TouchableOpacity
-            style={styles.startQuizButton}
+            style={[styles.startQuizButton, startDisabled && styles.disabled]}
             onPress={onStartTrack}
+            disabled={startDisabled}
           >
             <Image
               style={styles.iconPlaceholder}
               source={require("../assets/images/buttons/help-box-multiple.png")}
             />
-            <Text style={styles.buttonText}>Start Track</Text>
+            <Text style={styles.buttonText}>{startLabel}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.continueButton} onPress={onContinue}>
@@ -180,6 +185,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 7,
+  },
+  disabled: {
+    opacity: 0.5,
   },
   continueButton: {
     backgroundColor: "#FFF",

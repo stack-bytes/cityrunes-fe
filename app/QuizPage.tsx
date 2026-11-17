@@ -1,4 +1,6 @@
-import { addCoins, completePlace } from "@/store/slices/userSlice";
+import { AppDispatch, RootState } from "@/store";
+import { submitPlaceCompletion } from "@/store/slices/progressSlice";
+import { formatCompletionMessage } from "@/utils/progress";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -10,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 interface QuizAnswer {
   id: string;
@@ -19,7 +21,8 @@ interface QuizAnswer {
 
 export default function QuizPage() {
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
+  const saving = useSelector((state: RootState) => state.progress.saving);
   const params = useLocalSearchParams();
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
 
@@ -28,7 +31,7 @@ export default function QuizPage() {
     "What year was this historic monument built?";
   const placeName = (params.placeName as string) || "";
   const placeId = (params.placeId as string) || "";
-  const reward = params.reward ? Number(params.reward) : 0;
+  const roadId = (params.roadId as string) || "";
   const correctAnswerIndex = params.correctAnswer
     ? Number(params.correctAnswer)
     : 0;
@@ -46,18 +49,26 @@ export default function QuizPage() {
     setSelectedAnswer(answerId);
   };
 
-  const handleSubmit = () => {
-    if (selectedAnswer === null) return;
+  const handleSubmit = async () => {
+    if (selectedAnswer === null || saving) return;
 
-    const selectedIndex = Number(selectedAnswer);
-    const correct = selectedIndex === correctAnswerIndex;
+    if (Number(selectedAnswer) !== correctAnswerIndex) {
+      Alert.alert("Wrong Answer ❌", "That's not quite right. Try again!", [
+        {
+          text: "Try Again",
+          style: "default",
+        },
+      ]);
+      return;
+    }
 
-    if (correct) {
-      dispatch(completePlace(placeId));
-      dispatch(addCoins(reward));
+    try {
+      const outcome = await dispatch(
+        submitPlaceCompletion({ roadId, placeId })
+      ).unwrap();
       Alert.alert(
         "Correct! 🎉",
-        `Great job! You got it right! +${reward}G`,
+        `Great job! You got it right! ${formatCompletionMessage(outcome)}`,
         [
           {
             text: "OK",
@@ -66,15 +77,12 @@ export default function QuizPage() {
         ],
         { cancelable: false }
       );
-    } else {
-      Alert.alert("Wrong Answer ❌", "That's not quite right. Try again!", [
-        {
-          text: "Try Again",
-          style: "default",
-        },
-      ]);
+    } catch (message) {
+      Alert.alert("Could not save your progress", String(message));
     }
   };
+
+  const submitDisabled = !selectedAnswer || saving;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -118,10 +126,10 @@ export default function QuizPage() {
         <TouchableOpacity
           style={[
             styles.submitButton,
-            !selectedAnswer && styles.submitButtonDisabled,
+            submitDisabled && styles.submitButtonDisabled,
           ]}
           onPress={handleSubmit}
-          disabled={!selectedAnswer}
+          disabled={submitDisabled}
           activeOpacity={0.8}
         >
           <Text style={styles.submitButtonText}>Submit</Text>

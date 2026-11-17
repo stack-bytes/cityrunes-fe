@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import badgesReducer from "./slices/badgesSlice";
 import catalogReducer from "./slices/catalogSlice";
 import placesReducer from "./slices/placesSlice";
+import progressReducer from "./slices/progressSlice";
 import questsReducer from "./slices/questsSlice";
 import roadsReducer from "./slices/roadsSlice";
 import userReducer from "./slices/userSlice";
@@ -12,6 +13,7 @@ export const store = configureStore({
     badges: badgesReducer,
     roads: roadsReducer,
     places: placesReducer,
+    progress: progressReducer,
     quests: questsReducer,
     user: userReducer,
   },

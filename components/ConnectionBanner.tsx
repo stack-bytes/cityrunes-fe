@@ -1,5 +1,6 @@
 import { AppDispatch, RootState } from "@/store";
 import { loadCatalog } from "@/store/slices/catalogSlice";
+import { loadProgress } from "@/store/slices/progressSlice";
 import { loadUserBadges } from "@/store/slices/userSlice";
 import { useState } from "react";
 import {
@@ -19,12 +20,16 @@ export default function ConnectionBanner() {
   const badgesStatus = useSelector(
     (state: RootState) => state.user.badgesStatus
   );
+  const progressStatus = useSelector(
+    (state: RootState) => state.progress.status
+  );
   const userId = useSelector((state: RootState) => state.user.id);
   const [dismissed, setDismissed] = useState(false);
   const [hadFailure, setHadFailure] = useState(false);
 
-  const isLoading = catalogStatus === "loading" || badgesStatus === "loading";
-  const hasFailed = catalogStatus === "failed" || badgesStatus === "failed";
+  const statuses = [catalogStatus, badgesStatus, progressStatus];
+  const isLoading = statuses.includes("loading");
+  const hasFailed = statuses.includes("failed");
 
   if (hasFailed && !hadFailure) {
     setHadFailure(true);
@@ -46,6 +51,9 @@ export default function ConnectionBanner() {
     }
     if (badgesStatus === "failed") {
       dispatch(loadUserBadges(userId));
+    }
+    if (progressStatus === "failed") {
+      dispatch(loadProgress());
     }
   };
 

@@ -1,3 +1,4 @@
+import { callRpc } from "@/lib/rpc";
 import { supabase } from "@/lib/supabase";
 import { Badge, UserBadgeRow } from "@/types/badge";
 import { mapUserBadgeRows } from "@/utils/badgeMapper";
@@ -24,4 +25,11 @@ export const fetchUserBadges = async (userId: string): Promise<Badge[]> => {
   } finally {
     clearTimeout(timeoutId);
   }
+};
+
+export const buyBadge = async (badgeId: string): Promise<number> => {
+  const { coins } = await callRpc<{ coins: number }>("purchase_badge", {
+    p_badge_id: badgeId,
+  });
+  return coins;
 };

@@ -1,4 +1,4 @@
-import { RootState } from "@/store";
+import { AppDispatch, RootState } from "@/store";
 import { purchaseBadge } from "@/store/slices/userSlice";
 import { Badge } from "@/types/badge";
 import { resolveImage } from "@/utils/resolveImage";
@@ -18,7 +18,7 @@ import { verticalScale } from "react-native-size-matters";
 import { useDispatch, useSelector } from "react-redux";
 
 export default function StorePage() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user);
   const storeBadges = useSelector((state: RootState) => state.badges);
   const purchasedBadges = user.purchasedBadges || [];
@@ -40,9 +40,13 @@ export default function StorePage() {
       { text: "Cancel", style: "cancel" },
       {
         text: "Buy",
-        onPress: () => {
-          dispatch(purchaseBadge({ badge: item, price: item.price }));
-          Alert.alert("Success!", `You purchased ${item.name}!`);
+        onPress: async () => {
+          try {
+            await dispatch(purchaseBadge(item)).unwrap();
+            Alert.alert("Success!", `You purchased ${item.name}!`);
+          } catch (message) {
+            Alert.alert("Purchase failed", String(message));
+          }
         },
       },
     ]);

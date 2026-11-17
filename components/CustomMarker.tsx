@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { renderMarkerIcon } from "./markerIcons";
 
-export type MarkerVariant = "user" | "completed" | "default";
+export type MarkerVariant = "user" | "completed" | "default" | "locked";
 
 interface CustomMarkerProps {
   iconKey?: string;
@@ -13,6 +13,7 @@ const VARIANT_COLORS: Record<MarkerVariant, string> = {
   user: "#118CF7", 
   completed: "#2BBE4E", 
   default: "#F7A011", 
+  locked: "#9E9E9E",
 };
 
 export default function CustomMarker({

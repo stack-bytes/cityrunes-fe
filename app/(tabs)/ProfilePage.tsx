@@ -1,18 +1,15 @@
 import { RootState } from "@/store";
-import { addCoins } from "@/store/slices/userSlice";
 import { resolveImage } from "@/utils/resolveImage";
 import { router } from "expo-router";
 import { Cog } from "lucide-react-native";
-import React from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { verticalScale } from "react-native-size-matters";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 export default function ProfilePage() {
   const user = useSelector((state: RootState) => state.user);
-  const dispatch = useDispatch();
 
   const name = user.username;
   const balance = user.coins;
@@ -22,12 +19,7 @@ export default function ProfilePage() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.settingsButton}>
-          <Cog
-            style={styles.settingsIcon}
-            onPress={() => {
-              dispatch(addCoins(10));
-            }}
-          />
+          <Cog style={styles.settingsIcon} />
         </TouchableOpacity>
       </View>
 

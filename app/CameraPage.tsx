@@ -1,5 +1,6 @@
-import { compareImage } from "@/actions/camera";
-import { addCoins, completePlace } from "@/store/slices/userSlice";
+import { AppDispatch } from "@/store";
+import { submitPlaceCompletion } from "@/store/slices/progressSlice";
+import { formatCompletionMessage } from "@/utils/progress";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -18,7 +19,7 @@ import { useDispatch } from "react-redux";
 
 export default function CameraPage() {
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -45,35 +46,23 @@ export default function CameraPage() {
     );
   }
 
-  const processPhoto = async (photo: { uri: string }) => {
+  const processPhoto = async () => {
     try {
       setIsProcessing(true);
-
-      const result = await compareImage(
-        photo,
-        (params.name as string) || "Location",
-        (params.description as string) || "Description"
+      const outcome = await dispatch(
+        submitPlaceCompletion({
+          roadId: (params.roadId as string) || "",
+          placeId: (params.placeId as string) || "",
+        })
+      ).unwrap();
+      Alert.alert(
+        "Success!",
+        `Photo accepted! ${formatCompletionMessage(outcome)}`,
+        [{ text: "OK", onPress: () => router.back() }],
+        { cancelable: false }
       );
-
-      if (result.similarity >= result.thresholdHint) {
-        const placeId = params.id as string;
-        const reward = params.reward ? Number(params.reward) : 0;
-        if (placeId) {
-          dispatch(completePlace(placeId));
-          dispatch(addCoins(reward));
-        }
-        Alert.alert("Success!", `Match found! +${reward}G`, [
-          { text: "OK", onPress: () => router.back() },
-        ]);
-      } else {
-        Alert.alert("No Match", `No match found for your picture.`, [
-          { text: "Try Again", style: "cancel" },
-          { text: "Cancel", onPress: () => router.back() },
-        ]);
-      }
-    } catch (error) {
-      console.error("Error processing photo:", error);
-      Alert.alert("Error", "Failed to verify location. Please try again.", [
+    } catch (message) {
+      Alert.alert("Could not save your progress", String(message), [
         { text: "OK" },
       ]);
     } finally {
@@ -85,9 +74,8 @@ export default function CameraPage() {
     if (cameraRef.current && !isProcessing) {
       try {
         setIsProcessing(true);
-        const photo = await cameraRef.current.takePictureAsync();
-        console.log("Photo taken:", photo);
-        await processPhoto(photo);
+        await cameraRef.current.takePictureAsync();
+        await processPhoto();
       } catch (error) {
         console.error("Error taking photo:", error);
         setIsProcessing(false);
@@ -118,9 +106,7 @@ export default function CameraPage() {
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const photo = { uri: result.assets[0].uri };
-        console.log("Image picked:", photo);
-        await processPhoto(photo);
+        await processPhoto();
       }
     } catch (error) {
       console.error("Error picking image:", error);
