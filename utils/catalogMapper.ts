@@ -1,9 +1,11 @@
+import { BadgeRow } from "@/types/badge";
 import {
   Catalog,
   PlaceRow,
   QuestRow,
   RoadRow,
 } from "@/types/catalog";
+import { mapBadgeRow } from "./badgeMapper";
 import { Place } from "@/types/place";
 import { Quest } from "@/types/quest";
 import { Road } from "@/types/road";
@@ -71,7 +73,8 @@ export const mapRoadRow = (
 export const buildCatalog = (
   roadRows: RoadRow[],
   placeRows: PlaceRow[],
-  questRows: QuestRow[]
+  questRows: QuestRow[],
+  badgeRows: BadgeRow[]
 ): Catalog => {
   const places = placeRows.map(mapPlaceRow);
   const quests = questRows.map(mapQuestRow);
@@ -83,5 +86,7 @@ export const buildCatalog = (
     mapRoadRow(row, placesById, questsByPlaceId)
   );
 
-  return { roads, places, quests };
+  const badges = badgeRows.map(mapBadgeRow);
+
+  return { roads, places, quests, badges };
 };

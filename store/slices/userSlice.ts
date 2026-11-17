@@ -1,3 +1,4 @@
+import { fetchUserBadges } from "@/actions/badges";
 import { signInWithEmail } from "@/actions/auth";
 import { MOCK_USER } from "@/mocks/user-mock";
 import { Badge } from "@/types/badge";
@@ -8,15 +9,19 @@ import {
   PayloadAction,
 } from "@reduxjs/toolkit";
 
+export type BadgesStatus = "idle" | "loading" | "succeeded" | "failed";
+
 interface UserState extends User {
   completedPlaces: string[];
   purchasedBadges: Badge[];
+  badgesStatus: BadgesStatus;
 }
 
 const initialState: UserState = {
   ...MOCK_USER,
   completedPlaces: [],
   purchasedBadges: [],
+  badgesStatus: "idle",
 };
 
 interface LoginCredentials {
@@ -24,13 +29,20 @@ interface LoginCredentials {
   password: string;
 }
 
+export const loadUserBadges = createAsyncThunk<Badge[], string>(
+  "user/loadBadges",
+  fetchUserBadges
+);
+
 export const loginUser = createAsyncThunk<
   User,
   LoginCredentials,
   { rejectValue: string }
->("user/login", async ({ email, password }, { rejectWithValue }) => {
+>("user/login", async ({ email, password }, { dispatch, rejectWithValue }) => {
   try {
-    return await signInWithEmail(email, password);
+    const user = await signInWithEmail(email, password);
+    dispatch(loadUserBadges(user.id));
+    return user;
   } catch (error) {
     return rejectWithValue(
       error instanceof Error ? error.message : "Could not log in."
@@ -76,11 +88,23 @@ const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(loginUser.fulfilled, (_state, action) => ({
-      ...action.payload,
-      completedPlaces: [],
-      purchasedBadges: [],
-    }));
+    builder
+      .addCase(loginUser.fulfilled, (_state, action) => ({
+        ...action.payload,
+        completedPlaces: [],
+        purchasedBadges: [],
+        badgesStatus: "loading",
+      }))
+      .addCase(loadUserBadges.pending, (state) => {
+        state.badgesStatus = "loading";
+      })
+      .addCase(loadUserBadges.fulfilled, (state, action) => {
+        state.purchasedBadges = action.payload;
+        state.badgesStatus = "succeeded";
+      })
+      .addCase(loadUserBadges.rejected, (state) => {
+        state.badgesStatus = "failed";
+      });
   },
 });
 

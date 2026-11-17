@@ -1,5 +1,6 @@
 import { AppDispatch, RootState } from "@/store";
 import { loadCatalog } from "@/store/slices/catalogSlice";
+import { loadUserBadges } from "@/store/slices/userSlice";
 import { useState } from "react";
 import {
   ActivityIndicator,
@@ -14,11 +15,25 @@ import { useDispatch, useSelector } from "react-redux";
 export default function ConnectionBanner() {
   const dispatch = useDispatch<AppDispatch>();
   const insets = useSafeAreaInsets();
-  const status = useSelector((state: RootState) => state.catalog.status);
+  const catalogStatus = useSelector((state: RootState) => state.catalog.status);
+  const badgesStatus = useSelector(
+    (state: RootState) => state.user.badgesStatus
+  );
+  const userId = useSelector((state: RootState) => state.user.id);
   const [dismissed, setDismissed] = useState(false);
+  const [hadFailure, setHadFailure] = useState(false);
 
-  const isRetrying = status === "loading";
-  const isVisible = (status === "failed" || isRetrying) && !dismissed;
+  const isLoading = catalogStatus === "loading" || badgesStatus === "loading";
+  const hasFailed = catalogStatus === "failed" || badgesStatus === "failed";
+
+  if (hasFailed && !hadFailure) {
+    setHadFailure(true);
+  } else if (!hasFailed && !isLoading && hadFailure) {
+    setHadFailure(false);
+  }
+
+  const isRetrying = hadFailure && isLoading;
+  const isVisible = (hasFailed || isRetrying) && !dismissed;
 
   if (!isVisible) {
     return null;
@@ -26,7 +41,12 @@ export default function ConnectionBanner() {
 
   const handleRetry = () => {
     setDismissed(false);
-    dispatch(loadCatalog());
+    if (catalogStatus === "failed") {
+      dispatch(loadCatalog());
+    }
+    if (badgesStatus === "failed") {
+      dispatch(loadUserBadges(userId));
+    }
   };
 
   return (

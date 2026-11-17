@@ -1,11 +1,9 @@
-import { MOCK_STORE_BADGES } from "@/mocks/mock-store";
 import { RootState } from "@/store";
 import { purchaseBadge } from "@/store/slices/userSlice";
 import { Badge } from "@/types/badge";
 import { resolveImage } from "@/utils/resolveImage";
 import { router } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
-import React from "react";
 import {
   Alert,
   Image,
@@ -22,9 +20,10 @@ import { useDispatch, useSelector } from "react-redux";
 export default function StorePage() {
   const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user);
+  const storeBadges = useSelector((state: RootState) => state.badges);
   const purchasedBadges = user.purchasedBadges || [];
 
-  const availableItems = MOCK_STORE_BADGES.filter(
+  const availableItems = storeBadges.filter(
     (item) => !purchasedBadges.some((b) => b.id === item.id)
   );
 

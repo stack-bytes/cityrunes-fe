@@ -1,3 +1,4 @@
+import { Badge } from "./badge";
 import { Place } from "./place";
 import { Quest } from "./quest";
 import { Road } from "./road";
@@ -49,4 +50,5 @@ export interface Catalog {
   roads: Road[];
   places: Place[];
   quests: Quest[];
+  badges: Badge[];
 }
