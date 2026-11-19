@@ -1,9 +1,13 @@
+import { verifyPlacePhoto } from "@/actions/photoVerification";
+import { toErrorMessage } from "@/lib/rpc";
 import { AppDispatch } from "@/store";
 import { submitPlaceCompletion } from "@/store/slices/progressSlice";
+import { preparePhoto } from "@/utils/preparePhoto";
 import { formatCompletionMessage } from "@/utils/progress";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Images } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,14 +21,25 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 
+type Stage = "checking" | "saving";
+
+const STAGE_LABELS: Record<Stage, string> = {
+  checking: "Checking photo...",
+  saving: "Saving...",
+};
+
 export default function CameraPage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const [facing, setFacing] = useState<CameraType>("back");
   const [permission, requestPermission] = useCameraPermissions();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [stage, setStage] = useState<Stage | null>(null);
   const cameraRef = useRef<CameraView>(null);
   const params = useLocalSearchParams();
+  const isProcessing = stage !== null;
+  const roadId = (params.roadId as string) || "";
+  const placeId = (params.placeId as string) || "";
+  const placeName = (params.name as string) || "this place";
 
   if (!permission) {
     return <View />;
@@ -46,14 +61,32 @@ export default function CameraPage() {
     );
   }
 
-  const processPhoto = async () => {
+  const verifyPhoto = async (uri: string): Promise<boolean> => {
     try {
-      setIsProcessing(true);
+      const { match } = await verifyPlacePhoto(
+        placeId,
+        await preparePhoto(uri)
+      );
+      if (!match) {
+        Alert.alert(
+          "Not recognized",
+          `We could not recognize ${placeName} in this photo. Try another angle or get closer.`,
+          [{ text: "OK" }]
+        );
+      }
+      return match;
+    } catch (error) {
+      Alert.alert("Could not verify your photo", toErrorMessage(error), [
+        { text: "OK" },
+      ]);
+      return false;
+    }
+  };
+
+  const completePlace = async () => {
+    try {
       const outcome = await dispatch(
-        submitPlaceCompletion({
-          roadId: (params.roadId as string) || "",
-          placeId: (params.placeId as string) || "",
-        })
+        submitPlaceCompletion({ roadId, placeId })
       ).unwrap();
       Alert.alert(
         "Success!",
@@ -65,21 +98,42 @@ export default function CameraPage() {
       Alert.alert("Could not save your progress", String(message), [
         { text: "OK" },
       ]);
+    }
+  };
+
+  const processPhoto = async (uri: string) => {
+    setStage("checking");
+    try {
+      if (await verifyPhoto(uri)) {
+        setStage("saving");
+        await completePlace();
+      }
     } finally {
-      setIsProcessing(false);
+      setStage(null);
+    }
+  };
+
+  const capturePhoto = async (): Promise<string | null> => {
+    try {
+      const photo = await cameraRef.current?.takePictureAsync();
+      return photo?.uri ?? null;
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      Alert.alert("Error", "Failed to take photo. Please try again.", [
+        { text: "OK" },
+      ]);
+      return null;
     }
   };
 
   const takePicture = async () => {
-    if (cameraRef.current && !isProcessing) {
-      try {
-        setIsProcessing(true);
-        await cameraRef.current.takePictureAsync();
-        await processPhoto();
-      } catch (error) {
-        console.error("Error taking photo:", error);
-        setIsProcessing(false);
-      }
+    if (isProcessing) return;
+    setStage("checking");
+    const uri = await capturePhoto();
+    if (uri) {
+      await processPhoto(uri);
+    } else {
+      setStage(null);
     }
   };
 
@@ -100,13 +154,14 @@ export default function CameraPage() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: "images" as any,
+        mediaTypes: ["images"],
         allowsEditing: false,
         quality: 1,
       });
 
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        await processPhoto();
+      const uri = result.canceled ? undefined : result.assets?.[0]?.uri;
+      if (uri) {
+        await processPhoto(uri);
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -118,23 +173,40 @@ export default function CameraPage() {
 
   return (
     <View style={styles.container}>
-      <CameraView ref={cameraRef} style={styles.camera} facing={facing}>
-        <View style={styles.gradientOverlay} />
+      <CameraView
+        ref={cameraRef}
+        style={StyleSheet.absoluteFill}
+        facing={facing}
+      />
+      <View style={styles.gradientOverlay} />
 
-        <View style={styles.header}>
-          <View style={styles.iconContainer}>
-            <Image
-              source={require("../assets/images/buttons/routes.png")}
-              style={styles.routeIcon}
-              resizeMode="contain"
-            />
-          </View>
-          <Text style={styles.title}>
-            {params.name ? params.name : "Location"}
-          </Text>
+      <View style={styles.header}>
+        <View style={styles.iconContainer}>
+          <Image
+            source={require("../assets/images/buttons/routes.png")}
+            style={styles.routeIcon}
+            resizeMode="contain"
+          />
         </View>
+        <Text style={styles.title}>
+          {params.name ? params.name : "Location"}
+        </Text>
+      </View>
 
-        <View style={styles.captureContainer}>
+      <View style={styles.captureContainer}>
+        <View style={styles.controlsRow}>
+          <TouchableOpacity
+            style={[
+              styles.galleryButton,
+              isProcessing && styles.captureButtonDisabled,
+            ]}
+            onPress={pickImageFromGallery}
+            activeOpacity={0.8}
+            disabled={isProcessing}
+            accessibilityLabel="Upload a photo from your gallery"
+          >
+            <Images color="#FFFFFF" size={28} />
+          </TouchableOpacity>
           <TouchableOpacity
             style={[
               styles.captureButton,
@@ -143,6 +215,7 @@ export default function CameraPage() {
             onPress={takePicture}
             activeOpacity={0.8}
             disabled={isProcessing}
+            accessibilityLabel="Take a photo"
           >
             {isProcessing ? (
               <ActivityIndicator size="large" color="#FFFFFF" />
@@ -150,11 +223,12 @@ export default function CameraPage() {
               <View style={styles.captureButtonInner} />
             )}
           </TouchableOpacity>
-          {isProcessing && (
-            <Text style={styles.processingText}>Verifying location...</Text>
-          )}
+          <View style={styles.controlSpacer} />
         </View>
-      </CameraView>
+        {stage && (
+          <Text style={styles.processingText}>{STAGE_LABELS[stage]}</Text>
+        )}
+      </View>
     </View>
   );
 }
@@ -164,9 +238,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  camera: {
-    flex: 1,
-  },
   gradientOverlay: {
     position: "absolute",
     top: 0,
@@ -174,6 +245,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.2)",
+    pointerEvents: "none",
   },
   header: {
     position: "absolute",
@@ -227,6 +299,26 @@ const styles = StyleSheet.create({
     height: 65,
     borderRadius: 32.5,
     backgroundColor: "transparent",
+  },
+  controlsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 40,
+  },
+  galleryButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    borderWidth: 3,
+    borderColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  controlSpacer: {
+    width: 56,
+    height: 56,
   },
   processingText: {
     fontFamily: "SilkscreenBold",
